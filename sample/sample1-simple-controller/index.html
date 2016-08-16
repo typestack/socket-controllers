@@ -1,0 +1,21 @@
+<html>
+<script src="../../node_modules/socket.io-client/socket.io.js"></script>
+<script>
+    var socket = io('http://localhost:3001');
+    socket.on("save", function (data) {
+        console.log(data);
+        socket.emit("my other event", { my: "data" });
+    });
+
+    function onClick() {
+//        console.log("clicked save");
+        socket.emit("save", { my: "data" });
+    }
+</script>
+<body>
+
+Watch console for events.<br/>
+<button onclick="onClick()">Click to send a save event to the /messages namespace.</button>
+
+</body>
+</html>
