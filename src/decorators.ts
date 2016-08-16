@@ -4,6 +4,7 @@ import {ActionMetadataArgs} from "./metadata/args/ActionMetadataArgs";
 import {ActionTypes} from "./metadata/types/ActionTypes";
 import {ParamMetadataArgs} from "./metadata/args/ParamMetadataArgs";
 import {ParamTypes} from "./metadata/types/ParamTypes";
+import {ClassTransformOptions} from "class-transformer";
 
 /**
  * Registers a class to be a socket controller that can listen to events and respond to them.
@@ -66,14 +67,14 @@ export function OnDisconnect(): Function {
 /**
  * Injects connected client's socket object to the action handler function.
  */
-export function SocketClient() {
+export function ConnectedSocket() {
     return function (object: Object, methodName: string, index: number) {
         let format = (Reflect as any).getMetadata("design:paramtypes", object, methodName)[index];
         const metadata: ParamMetadataArgs = {
             target: object.constructor,
             method: methodName,
             index: index,
-            type: ParamTypes.SOCKET_CLIENT,
+            type: ParamTypes.CONNECTED_SOCKET,
             reflectedType: format
         };
         defaultMetadataArgsStorage().params.push(metadata);
@@ -83,7 +84,7 @@ export function SocketClient() {
 /**
  * Injects message body.
  */
-export function SocketBody() {
+export function SocketBody(options?: { classTransformOptions?: ClassTransformOptions }) {
     return function (object: Object, methodName: string, index: number) {
         let format = (Reflect as any).getMetadata("design:paramtypes", object, methodName)[index];
         const metadata: ParamMetadataArgs = {
@@ -91,6 +92,81 @@ export function SocketBody() {
             method: methodName,
             index: index,
             type: ParamTypes.SOCKET_BODY,
+            reflectedType: format,
+            classTransformOptions: options && options.classTransformOptions ? options.classTransformOptions : undefined
+        };
+        defaultMetadataArgsStorage().params.push(metadata);
+    };
+}
+
+/**
+ * Injects query parameter from the socket.
+ */
+export function SocketQueryParam(name?: string) {
+    return function (object: Object, methodName: string, index: number) {
+        let format = (Reflect as any).getMetadata("design:paramtypes", object, methodName)[index];
+        const metadata: ParamMetadataArgs = {
+            target: object.constructor,
+            method: methodName,
+            index: index,
+            type: ParamTypes.SOCKET_QUERY_PARAM,
+            reflectedType: format,
+            value: name
+        };
+        defaultMetadataArgsStorage().params.push(metadata);
+    };
+}
+
+export function SocketIO() {
+    return function (object: Object, methodName: string, index: number) {
+        let format = (Reflect as any).getMetadata("design:paramtypes", object, methodName)[index];
+        const metadata: ParamMetadataArgs = {
+            target: object.constructor,
+            method: methodName,
+            index: index,
+            type: ParamTypes.SOCKET_IO,
+            reflectedType: format
+        };
+        defaultMetadataArgsStorage().params.push(metadata);
+    };
+}
+
+export function SocketId() {
+    return function (object: Object, methodName: string, index: number) {
+        let format = (Reflect as any).getMetadata("design:paramtypes", object, methodName)[index];
+        const metadata: ParamMetadataArgs = {
+            target: object.constructor,
+            method: methodName,
+            index: index,
+            type: ParamTypes.SOCKET_ID,
+            reflectedType: format
+        };
+        defaultMetadataArgsStorage().params.push(metadata);
+    };
+}
+
+export function SocketRequest() {
+    return function (object: Object, methodName: string, index: number) {
+        let format = (Reflect as any).getMetadata("design:paramtypes", object, methodName)[index];
+        const metadata: ParamMetadataArgs = {
+            target: object.constructor,
+            method: methodName,
+            index: index,
+            type: ParamTypes.SOCKET_REQUEST,
+            reflectedType: format
+        };
+        defaultMetadataArgsStorage().params.push(metadata);
+    };
+}
+
+export function SocketRooms() {
+    return function (object: Object, methodName: string, index: number) {
+        let format = (Reflect as any).getMetadata("design:paramtypes", object, methodName)[index];
+        const metadata: ParamMetadataArgs = {
+            target: object.constructor,
+            method: methodName,
+            index: index,
+            type: ParamTypes.SOCKET_ROOMS,
             reflectedType: format
         };
         defaultMetadataArgsStorage().params.push(metadata);

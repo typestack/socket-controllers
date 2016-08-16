@@ -29,7 +29,6 @@ export function createSocketIoServer(port: number, options?: SocketControllersOp
  * Registers all loaded actions in your express application.
  */
 function createExecutor(io: any, options: SocketControllersOptions): void {
-
     const executor = new SocketControllerExecutor(io);
 
     // second import all controllers and middlewares and error handlers

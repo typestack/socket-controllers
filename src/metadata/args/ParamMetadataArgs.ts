@@ -34,11 +34,16 @@ export interface ParamMetadataArgs {
     /**
      * Transforms the value.
      */
-    transform?: (value?: any, request?: any, response?: any) => Promise<any>|any;
+    transform?: (value: any, socket: any) => Promise<any>|any;
 
     /**
      * Class transform options used to perform plainToClass operation.
      */
     classTransformOptions?: ClassTransformOptions;
+
+    /**
+     * Extra parameter value.
+     */
+    value?: any;
 
 }

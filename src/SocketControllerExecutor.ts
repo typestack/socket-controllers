@@ -4,6 +4,8 @@ import {ClassTransformOptions, plainToClass} from "class-transformer";
 import {ActionTypes} from "./metadata/types/ActionTypes";
 import {ParamMetadata} from "./metadata/ParamMetadata";
 import {ParameterParseJsonError} from "./error/ParameterParseJsonError";
+import {ParamTypes} from "./metadata/types/ParamTypes";
+import {ControllerMetadata} from "./metadata/ControllerMetadata";
 
 /**
  * Registers controllers and actions in the given server framework.
@@ -63,31 +65,64 @@ export class SocketControllerExecutor {
      */
     private registerActions(classes?: Function[]): this {
         const controllers = this.metadataBuilder.buildControllerMetadata(classes);
-        this.io.on("connection", (clientSocket: any) => {
-            controllers.forEach(controller => {
-                controller.actions.forEach(action => {
-                    if (action.type === ActionTypes.CONNECT) {
-                        this.handleAction(action, { socket: clientSocket });
+        const controllersWithoutNamespaces = controllers.filter(ctrl => !ctrl.namespace);
+        const controllersWithNamespaces = controllers.filter(ctrl => !!ctrl.namespace);
 
-                    } else if (action.type === ActionTypes.DISCONNECT) {
-                        clientSocket.on("disconnect", () => this.handleAction(action, { socket: clientSocket }));
+        // register controllers without namespaces
+        this.io.on("connection", (socket: any) => this.handleConnection(controllersWithoutNamespaces, socket));
 
-                    } else if (action.type === ActionTypes.MESSAGE) {
-                        clientSocket.on(action.name, (data: any) => this.handleAction(action, { socket: clientSocket, data: data }));
-                    }
-                });
-            });
+        // register controllers with namespaces
+        controllersWithNamespaces.forEach(controller => {
+            this.io.of(controller.namespace).on("connection", (socket: any) => this.handleConnection([controller], socket));
         });
 
         return this;
     }
 
-    private handleAction(action: ActionMetadata, actionOptions: { socket?: any, data?: any }) {
+    private handleConnection(controllers: ControllerMetadata[], socket: any) {
+        controllers.forEach(controller => {
+            controller.actions.forEach(action => {
+                if (action.type === ActionTypes.CONNECT) {
+                    this.handleAction(action, { socket: socket });
+
+                } else if (action.type === ActionTypes.DISCONNECT) {
+                    socket.on("disconnect", () => this.handleAction(action, { socket: socket }));
+
+                } else if (action.type === ActionTypes.MESSAGE) {
+                    socket.on(action.name, (data: any) => this.handleAction(action, { socket: socket, data: data }));
+                }
+            });
+        });
+    }
+
+    private handleAction(action: ActionMetadata, options: { socket?: any, data?: any }) {
         
         // compute all parameters
         const paramsPromises = action.params
             .sort((param1, param2) => param1.index - param2.index)
-            .map(param => this.handleParam(param, actionOptions));
+            .map(param => {
+                if (param.type === ParamTypes.CONNECTED_SOCKET) {
+                    return options.socket;
+
+                } else if (param.type === ParamTypes.SOCKET_IO) {
+                    return this.io;
+
+                } else if (param.type === ParamTypes.SOCKET_QUERY_PARAM) {
+                    return options.socket.handshake.query[param.value];
+
+                } else if (param.type === ParamTypes.SOCKET_ID) {
+                    return options.socket.id;
+
+                } else if (param.type === ParamTypes.SOCKET_REQUEST) {
+                    return options.socket.request;
+
+                } else if (param.type === ParamTypes.SOCKET_ROOMS) {
+                    return options.socket.rooms;
+
+                } else {
+                    return this.handleParam(param, options);
+                }
+            });
 
         // after all parameters are computed
         Promise.all(paramsPromises).then(params => {
@@ -99,8 +134,9 @@ export class SocketControllerExecutor {
     }
 
     private handleParam(param: ParamMetadata, options: { socket?: any, data?: any }) {
+
         let value = options.data;
-        if (!value === null || value === undefined || value === "")
+        if (value !== null && value !== undefined && value !== "")
             value = this.handleParamFormat(value, param);
 
         // if transform function is given for this param then apply it

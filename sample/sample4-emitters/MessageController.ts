@@ -15,11 +15,14 @@ export class MessageController {
     }
 
     @OnMessage("save")
+    // @EmitOnSuccess("message_save_success")
+    // @EmitOnFail("message_save_failed")
+    // @SkipEmitOnEmptyResult()
     save(@ConnectedSocket() socket: any, @SocketBody() message: Message) {
         console.log("received message:", message);
         console.log("setting id to the message and sending it back to the client");
         message.id = 1;
-        socket.emit("message_saved", message);
+        return message;
     }
 
 }
