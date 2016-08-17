@@ -6,12 +6,11 @@ import {ParamMetadataArgs} from "./metadata/args/ParamMetadataArgs";
 import {ParamTypes} from "./metadata/types/ParamTypes";
 import {ClassTransformOptions} from "class-transformer";
 import {MiddlewareMetadataArgs} from "./metadata/args/MiddlewareMetadataArgs";
-import {MiddlewareInterface} from "./MiddlewareInterface";
 import {ResultMetadataArgs} from "./metadata/args/ResultMetadataArgs";
 import {ResultTypes} from "./metadata/types/ResultTypes";
 
 /**
- * Registers a class to be a socket controller that can listen to events and respond to them.
+ * Registers a class to be a socket controller that can listen to websocket events and respond to them.
  *
  * @param namespace Namespace in which this controller's events will be registered.
  */
@@ -26,7 +25,7 @@ export function SocketController(namespace?: string) {
 }
 
 /**
- * Registers controller's function to be executed when socket receives given message.
+ * Registers controller's action to be executed when socket receives message with given name.
  */
 export function OnMessage(name?: string): Function {
     return function (object: Object, methodName: string) {
@@ -41,7 +40,7 @@ export function OnMessage(name?: string): Function {
 }
 
 /**
- * Registers controller's function to be executed when client connects to the socket.
+ * Registers controller's action to be executed when client connects to the socket.
  */
 export function OnConnect(): Function {
     return function (object: Object, methodName: string) {
@@ -55,7 +54,7 @@ export function OnConnect(): Function {
 }
 
 /**
- * Registers controller's function to be executed when client disconnects from the socket.
+ * Registers controller's action to be executed when client disconnects from the socket.
  */
 export function OnDisconnect(): Function {
     return function (object: Object, methodName: string) {
@@ -69,7 +68,7 @@ export function OnDisconnect(): Function {
 }
 
 /**
- * Injects connected client's socket object to the action handler function.
+ * Injects connected client's socket object to the controller action.
  */
 export function ConnectedSocket() {
     return function (object: Object, methodName: string, index: number) {
@@ -86,7 +85,24 @@ export function ConnectedSocket() {
 }
 
 /**
- * Injects message body.
+ * Injects socket.io object that initialized a connection.
+ */
+export function SocketIO() {
+    return function (object: Object, methodName: string, index: number) {
+        let format = (Reflect as any).getMetadata("design:paramtypes", object, methodName)[index];
+        const metadata: ParamMetadataArgs = {
+            target: object.constructor,
+            method: methodName,
+            index: index,
+            type: ParamTypes.SOCKET_IO,
+            reflectedType: format
+        };
+        defaultMetadataArgsStorage().params.push(metadata);
+    };
+}
+
+/**
+ * Injects received message body.
  */
 export function MessageBody(options?: { classTransformOptions?: ClassTransformOptions }) {
     return function (object: Object, methodName: string, index: number) {
@@ -104,7 +120,7 @@ export function MessageBody(options?: { classTransformOptions?: ClassTransformOp
 }
 
 /**
- * Injects query parameter from the socket.
+ * Injects query parameter from the received socket request.
  */
 export function SocketQueryParam(name?: string) {
     return function (object: Object, methodName: string, index: number) {
@@ -121,20 +137,9 @@ export function SocketQueryParam(name?: string) {
     };
 }
 
-export function SocketIO() {
-    return function (object: Object, methodName: string, index: number) {
-        let format = (Reflect as any).getMetadata("design:paramtypes", object, methodName)[index];
-        const metadata: ParamMetadataArgs = {
-            target: object.constructor,
-            method: methodName,
-            index: index,
-            type: ParamTypes.SOCKET_IO,
-            reflectedType: format
-        };
-        defaultMetadataArgsStorage().params.push(metadata);
-    };
-}
-
+/**
+ * Injects socket id from the received request.
+ */
 export function SocketId() {
     return function (object: Object, methodName: string, index: number) {
         let format = (Reflect as any).getMetadata("design:paramtypes", object, methodName)[index];
@@ -149,6 +154,9 @@ export function SocketId() {
     };
 }
 
+/**
+ * Injects request object received by socket.
+ */
 export function SocketRequest() {
     return function (object: Object, methodName: string, index: number) {
         let format = (Reflect as any).getMetadata("design:paramtypes", object, methodName)[index];
@@ -163,6 +171,9 @@ export function SocketRequest() {
     };
 }
 
+/**
+ * Injects rooms of the connected socket client.
+ */
 export function SocketRooms() {
     return function (object: Object, methodName: string, index: number) {
         let format = (Reflect as any).getMetadata("design:paramtypes", object, methodName)[index];
@@ -177,6 +188,9 @@ export function SocketRooms() {
     };
 }
 
+/**
+ * Registers a new middleware to be registered in the socket.io.
+ */
 export function Middleware(options?: { priority?: number }): Function {
     return function (object: Function) {
         const metadata: MiddlewareMetadataArgs = {
@@ -188,8 +202,11 @@ export function Middleware(options?: { priority?: number }): Function {
 }
 
 /**
+ * If this decorator is set then after controller action will emit message with the given name after action execution.
+ * It will emit message only if controller succeed without errors.
+ * If result is a Promise then it will wait until promise is resolved and emit a message.
  */
-export function EmitOnSuccess(messageName?: string, options?: { classTransformOptions?: ClassTransformOptions }): Function {
+export function EmitOnSuccess(messageName: string, options?: { classTransformOptions?: ClassTransformOptions }): Function {
     return function (object: Object, methodName: string) {
         const metadata: ResultMetadataArgs = {
             target: object.constructor,
@@ -203,8 +220,11 @@ export function EmitOnSuccess(messageName?: string, options?: { classTransformOp
 }
 
 /**
+ * If this decorator is set then after controller action will emit message with the given name after action execution.
+ * It will emit message only if controller throw an exception.
+ * If result is a Promise then it will wait until promise throw an error and emit a message.
  */
-export function EmitOnFail(messageName?: string, options?: { classTransformOptions?: ClassTransformOptions }): Function {
+export function EmitOnFail(messageName: string, options?: { classTransformOptions?: ClassTransformOptions }): Function {
     return function (object: Object, methodName: string) {
         const metadata: ResultMetadataArgs = {
             target: object.constructor,
@@ -218,6 +238,9 @@ export function EmitOnFail(messageName?: string, options?: { classTransformOptio
 }
 
 /**
+ * Used in conjunction with @EmitOnSuccess and @EmitOnFail decorators.
+ * If result returned by controller action is null or undefined then messages will not be emitted by @EmitOnSuccess
+ * or @EmitOnFail decorators.
  */
 export function SkipEmitOnEmptyResult(): Function {
     return function (object: Object, methodName: string) {

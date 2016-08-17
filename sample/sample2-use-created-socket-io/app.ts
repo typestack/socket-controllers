@@ -1,6 +1,5 @@
 import "reflect-metadata";
-import {createSocketIoServer, useSocketIoServer} from "../../src/index";
-
+import {useSocketServer} from "../../src/index";
 import "./MessageController";
 
 const app = require("express")();
@@ -17,6 +16,6 @@ io.use((socket: any, next: Function) => {
     console.log("Custom middleware");
     next();
 });
-useSocketIoServer(io);
+useSocketServer(io);
 
 console.log("Socket.io is up and running on port 3001. Send messages via socket-io client.");

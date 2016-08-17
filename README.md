@@ -7,8 +7,8 @@
 [![devDependency Status](https://david-dm.org/pleerock/socket-controllers/dev-status.svg)](https://david-dm.org/pleerock/socket-controllers#info=devDependencies)
 [![Join the chat at https://gitter.im/pleerock/socket-controllers](https://badges.gitter.im/pleerock/socket-controllers.svg)](https://gitter.im/pleerock/socket-controllers?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-Allows to create controller classes with methods as actions that handle requests.
-You can use socket-controllers with [express.js][1] or [koa.js][2].
+Use class-based controllers to handle websocket events. 
+Helps to organize your code working with websockets in classes.
 
 ## Installation
 
@@ -37,863 +37,355 @@ You can use socket-controllers with [express.js][1] or [koa.js][2].
     import "es6-shim";
     ```
 
-4. Install framework:
+4. Optionally you can install scoket.io [typings](https://github.com/typings/typings):
 
-    **a. If you want to use socket-controllers with *express.js*, then install it and all required dependencies:**
-
-    `npm install express body-parser multer --save`
-
-    Optionally you can also install its [typings](https://github.com/typings/typings):
-
-    `typings install dt~express dt~serve-static --save --global`
-
-    **b. If you want to use socket-controllers with *koa 2*, then install it and all required dependencies:**
-
-    `npm install koa@next koa-router@next koa-bodyparser@next --save`
-
-    Optionally you can also install its [typings](https://github.com/typings/typings):
-
-    `typings install dt~koa --save --global`
+    `typings install dt~scoket.io --save --global`
 
 
 ## Example of usage
 
-1. Create a file `UserController.ts`
+1. Create a file `MessageController.ts`
 
     ```typescript
-    import {Controller, Param, Body, Get, Post, Put, Delete} from "socket-controllers";
+    import {OnConnect, SocketController, ConnectedSocket, OnDisconnect, MessageBody, OnMessage} from "socket-controllers";
 
-    @Controller()
-    export class UserController {
-
-        @Get("/users")
-        getAll() {
-           return "This action returns all users";
+    @SocketController()
+    export class MessageController {
+    
+        @OnConnect()
+        connection(@ConnectedSocket() socket: any) {
+            console.log("client connected");
         }
-
-        @Get("/users/:id")
-        getOne(@Param("id") id: number) {
-           return "This action returns user #" + id;
+    
+        @OnDisconnect()
+        disconnect(@ConnectedSocket() socket: any) {
+            console.log("client disconnected");
         }
-
-        @Post("/users")
-        post(@Body() user: any) {
-           return "Saving user...";
+    
+        @OnMessage("save")
+        save(@ConnectedSocket() socket: any, @MessageBody() message: any) {
+            console.log("received message:", message);
+            console.log("setting id to the message and sending it back to the client");
+            message.id = 1;
+            socket.emit("message_saved", message);
         }
-
-        @Put("/users/:id")
-        put(@Param("id") id: number, @Body() user: any) {
-           return "Updating a user...";
-        }
-
-        @Delete("/users/:id")
-        remove(@Param("id") id: number) {
-           return "Removing user...";
-        }
-
+    
     }
     ```
-
-    This class will register routes specified in method decorators in your server framework (express.js or koa).
 
 2. Create a file `app.ts`
 
     ```typescript
     import "es6-shim"; // this shim is optional if you are using old version of node
     import "reflect-metadata"; // this shim is required
-    import {createExpressServer} from "socket-controllers";
+    import {createSocketServer} from "socket-controllers";
     import "./UserController";  // we need to "load" our controller before call createServer. this is required
-    let app = createExpressServer(); // creates express app, registers all controller routes and returns you express app instance
-    app.listen(3000); // run express application
+     
+    createSocketServer(3001);
     ```
 
-    > koa users just need to call `createKoaServer` instead of `createExpressServer`
-
-3. Open in browser `http://localhost:3000/users`. You should see `This action returns all users` in your browser.
-If you open `http://localhost:3000/users/1` you should see `This action returns user #1` in your browser.
+3. Now you can send `save` websocket message using webosocket-client.
 
 ## More usage examples
 
-#### Return promises
+#### Executing operations on socket client connect / disconnect
 
-You can return a promise in the controller, and it will wait until promise resolved and return in a response a promise result.
+To get connected socket decorator you need to use `@ConnectedSocket()` decorator.
 
 ```typescript
-import {JsonController, Param, Body, Get, Post, Put, Delete} from "socket-controllers";
+import {SocketController, OnConnect, OnDisconnect} from "socket-controllers";
 
-@JsonController()
-export class UserController {
+@SocketController()
+export class MessageController {
 
-    @Get("/users")
-    getAll() {
-       return userRepository.findAll();
+    @OnConnect()
+    save() {
+        console.log("client connected");
     }
 
-    @Get("/users/:id")
-    getOne(@Param("id") id: number) {
-       return userRepository.findById(id);
-    }
-
-    @Post("/users")
-    post(@Body() user: User) {
-       return userRepository.insert(user);
-    }
-
-    @Put("/users/:id")
-    put(@Param("id") id: number, @Body() user: User) {
-       return userRepository.updateById(id, user);
-    }
-
-    @Delete("/users/:id")
-    remove(@Param("id") id: number) {
-       return userRepository.removeById(id);
+    @OnDisconnect()
+    save() {
+        console.log("client disconnected");
     }
 
 }
 ```
 
-#### Using Request and Response objects
+#### `@ConnectedSocket()` decorator
 
-You can use framework's request and response objects this way:
+To get connected socket decorator you need to use `@ConnectedSocket()` decorator.
 
 ```typescript
-import {Controller, Req, Res, Get} from "socket-controllers";
+import {SocketController, OnMessage, ConnectedSocket} from "socket-controllers";
 
-@Controller()
-export class UserController {
+@SocketController()
+export class MessageController {
 
-    @Get("/users")
-    getAll(@Req() request: any, @Res() response: any) {
-        response.send("Hello response!");
+    @OnMessage("save")
+    save(@ConnectedSocket() socket: any) {
+        socket.emit("save_success");
     }
 
 }
 ```
 
-`@Req()` decorator inject you a `Request` object, and `@Res()` decorator inject you a `Response` object.
-If you have installed a express typings too, you can use their types:
+#### `@MessageBody()` decorator
+
+To get received message body by using `@MessageBody()` decorator.
 
 ```typescript
-import {Request, Response} from "express";
-import {Controller, Req, Res, Get} from "socket-controllers";
+import {SocketController, OnMessage, MessageBody} from "socket-controllers";
 
-@Controller()
-export class UserController {
+@SocketController()
+export class MessageController {
 
-    @Get("/users")
-    getAll(@Req() request: Request, @Res() response: Response) {
-        response.send("Hello response!");
+    @OnMessage("save")
+    save(@MessageBody() message: any) {
+        console.log("received message: ", message);
     }
 
 }
 ```
+
+If you specify a class type to parameter that is decorated with `@MessageBody()`,
+socket-controllers will use [class-transformer][4] to create instance of the given class type with the data received in the message.
+To disable this behaviour you need to specify a `{ useConstructorUtils: false }` in SocketControllerOptions when creating a server.
+
+#### `@SocketQueryParam()` decorator
+
+To get received query parameter by using `@SocketQueryParam()` decorator.
+
+```typescript
+import {SocketController, OnMessage, MessageBody} from "socket-controllers";
+
+@SocketController()
+export class MessageController {
+
+    @OnMessage("save")
+    save(@SocketQueryParam("token") token: string) {
+        console.log("authorization token from query parameter: ", token);
+    }
+
+}
+```
+
+#### Get socket client id using `@SocketId()` decorator
+
+```typescript
+import {SocketController, OnMessage, MessageBody} from "socket-controllers";
+
+@SocketController()
+export class MessageController {
+
+    @OnMessage("save")
+    save(@SocketId() id: string) {
+    }
+
+}
+```
+
+#### Get access to using socket.io instance using `@SocketIO()` decorator
+
+```typescript
+import {SocketController, OnMessage, MessageBody} from "socket-controllers";
+
+@SocketController()
+export class MessageController {
+
+    @OnMessage("save")
+    save(@SocketIO() io: any) {
+        // now you can broadcast messages to specific rooms or namespaces using io instance
+    }
+
+}
+```
+
+#### Send message back to client after method execution
+
+You can use `@EmitOnSuccess` decorator:
+
+```typescript
+import {SocketController, OnMessage, EmitOnSuccess} from "socket-controllers";
+
+@SocketController()
+export class MessageController {
+
+    @OnMessage("save")
+    @EmitOnSuccess("save_successfully")
+    save() {
+        // after this controller executed "save_successfully" message will be emitted back to the client
+    }
+
+}
+```
+
+If you return something, it will be returned in the emitted message data
+
+```typescript
+import {SocketController, OnMessage, EmitOnSuccess} from "socket-controllers";
+
+@SocketController()
+export class MessageController {
+
+    @OnMessage("save")
+    @EmitOnSuccess("save_successfully")
+    save() {
+        // after this controller executed "save_successfully" message will be emitted back to the client with message object
+        return {
+            id: 1,
+            text: "new message"
+        };
+    }
+
+}
+```
+
+You can also control what message will be emitted if there is error/exception during execution:
+
+```typescript
+import {SocketController, OnMessage, EmitOnSuccess, EmitOnFail} from "socket-controllers";
+
+@SocketController()
+export class MessageController {
+
+    @OnMessage("save")
+    @EmitOnSuccess("save_successfully")
+    @EmitOnFail("save_error")
+    save() {
+        if (1 === 1) {
+            throw new Error("One is equal to one! Fatal error!");
+        }
+        return {
+            id: 1,
+            text: "new message"
+        };
+    }
+
+}
+```
+
+In this case `save_error` message will be sent to the client with `One is equal to one! Fatal error!` error message.
+
+Sometimes you may want to not emit success/error message if returned result is null or undefined.
+In such cases you can use `@SkipEmitOnEmptyResult()` decorator.
+
+```typescript
+import {SocketController, OnMessage, EmitOnSuccess, EmitOnFail, SkipEmitOnEmptyResult} from "socket-controllers";
+
+@SocketController()
+export class MessageController {
+
+    @OnMessage("get")
+    @EmitOnSuccess("get_success")
+    @SkipEmitOnEmptyResult()
+    get(): Promise<Message[]> {
+        return this.messageRepository.findAll();
+    }
+
+}
+```
+
+In this case if findAll will return undefined, `get_success` message will not be emitted.
+If findAll will return array of messages, they will be emitted back to the client in the `get_success` message.
+This example also demonstrates that Promises are supports. 
+If promise returned by controller action, message will be emitted only after promise will be resolved.
 
 #### Using exist server instead of creating a new one
 
-If you have, or if you want to create and configure express app separately,
-you can use `useExpressServer` instead of `createExpressServer` function:
+If you have, or if you want to create and configure socket.io server,
+you can use `useSocketServer` instead of `createSocketServer` function.
+Here is example of creating socket.io server and configuring it with express:
 
 ```typescript
 import "reflect-metadata"; // this shim is required
-import {useExpressServer} from "socket-controllers";
+import {useSocketServer} from "socket-controllers";
 
-let express = require("express"); // or you can import it if you have installed typings
-let app = express(); // your created express server
-// app.use() // maybe you configure it the way you want
-useExpressServer(app); // register created express server in socket-controllers
-app.listen(3000); // run your express server
+const app = require("express")();
+const server = require("http").Server(app);
+const io = require("socket.io")(server);
+
+server.listen(3001);
+
+app.get("/", function (req: any, res: any) {
+    res.send("hello express");
+});
+
+io.use((socket: any, next: Function) => {
+    console.log("Custom middleware");
+    next();
+});
+useSocketServer(io);
 ```
-
-> koa users must use `useKoaServer` instead of `useExpressServer`
 
 #### Load all controllers from the given directory
 
 You can load all controllers in once from specific directories, by specifying array of directories via options in
-`createExpressServer` or `useExpressServer`:
+`createSocketServer` or `useSocketServer`:
 
 ```typescript
 import "reflect-metadata"; // this shim is required
-import {createExpressServer, loadControllers} from "socket-controllers";
+import {createSocketServer, loadControllers} from "socket-controllers";
 
-createExpressServer({
+createSocketServer(3000, {
     controllerDirs: [__dirname + "/controllers/*.js"]
-}).listen(3000); // register controllers routes in our express application
+}); // registers all given controllers
 ```
 
-> koa users must use `createKoaServer` instead of `createExpressServer`
+#### Using socket.io namespaces
 
-#### Load all controllers from the given directory and prefix routes
-
-If you want to prefix all routes in some directory eg. /api 
+To listen to messages only of the specific namespace you can mark a controller with namespace:
 
 ```typescript
-import "reflect-metadata"; // this shim is required
-import {createExpressServer} from "socket-controllers";
-
-createExpressServer({
-    routePrefix: "/api",
-    controllerDirs: [__dirname + "/api/controllers/*.js"] // register controllers routes in our express app
-}).listen(3000);
-```
-
-> koa users must use `createKoaServer` instead of `createExpressServer`
-
-#### Prefix controller with base route
-
-You can prefix all controller's actions with specific base route:
-
-```typescript
-@Controller("/users")
-export class UserController {
+@SocketController("/messages")
+export class MessageController {
     // ...
 }
 ```
-
-#### Output JSON instead of regular text content
-
-If you are designing a REST API where your endpoints always return JSON you can use `@JsonController` decorator instead
-of `@Controller`. This will guarantee you that data returned by your controller actions always be transformed to JSON
- and `Content-Type` header will be always set to `application/json`:
-
-```typescript
-@JsonController()
-export class UserController {
-    // ...
-}
-```
-
-#### Per-action JSON / non-JSON output
-
-In the case if you want to control if your controller's action will return json or regular plain text,
-you can specify a special option:
-
-```typescript
-// this will ignore @Controller if it used and return a json in a response
-@Get("/users")
-@JsonResponse()
-getUsers() {
-}
-
-// this will ignore @JsonController if it used and return a regular text in a response
-@Get("/posts")
-@TextResponse()
-getPosts() {
-}
-```
-
-#### Inject routing parameters
-
-You can use parameters in your routes, and to inject such parameters in your controller methods use `@Param` decorator:
-
-```typescript
-@Get("/users/:id")
-getUsers(@Param("id") id: number) {
-}
-```
-
-#### Inject query parameters
-
-To inject query parameters, use `@QueryParam` decorator:
-
-```typescript
-@Get("/users")
-getUsers(@QueryParam("limit") limit: number) {
-}
-```
-
-#### Inject request body
-
-To inject request body, use `@Body` decorator:
-
-```typescript
-@Post("/users")
-saveUser(@Body() user: User) {
-}
-```
-
-If you specify a class type to parameter that is decorated with `@Body()`,
-socket-controllers will use [class-transformer][4] to create instance of the given class type with the data received in request body.
-To disable this behaviour you need to specify a `{ useConstructorUtils: false }` in RoutingControllerOptions when creating a server.
-
-
-#### Inject request body parameters
-
-To inject request body parameter, use `@BodyParam` decorator:
-
-```typescript
-@Post("/users")
-saveUser(@BodyParam("name") userName: string) {
-}
-```
-
-#### Inject request header parameters
-
-To inject request header parameter, use `@HeaderParam` decorator:
-
-```typescript
-@Post("/users")
-saveUser(@HeaderParam("authorization") token: string) {
-}
-```
-
-#### Inject uploaded file
-
-To inject uploaded file, use `@UploadedFile` decorator:
-
-```typescript
-@Post("/files")
-saveFile(@UploadedFile("fileName") file: any) {
-}
-```
-
-Routing-controllers uses [multer][3] to handle file uploads.
-You can install multer's file definitions via typings, and use `files: File[]` type instead of `any[]`.
-This feature is not supported by koa driver yet.
-
-#### Inject uploaded files
-
-To inject all uploaded files, use `@UploadedFiles` decorator:
-
-```typescript
-@Post("/files")
-saveAll(@UploadedFiles("files") files: any[]) {
-}
-```
-
-Routing-controllers uses [multer][3] to handle file uploads.
-You can install multer's file definitions via typings, and use `files: File[]` type instead of `any[]`.
-This feature is not supported by koa driver yet.
-
-#### Inject cookie parameter
-
-To get a cookie parameter, use `@CookieParam` decorator:
-
-```typescript
-@Get("/users")
-getUsers(@CookieParam("username") username: string) {
-}
-```
-
-#### Make parameter required
-
-To make any parameter required, simply pass a `required: true` flag in its options:
-
-```typescript
-@Post("/users")
-save(@Body({ required: true }) user: any) {
-    // your method will not be executed if user is not sent in a request
-}
-```
-
-Same you can do with all other parameters: @Param, @QueryParam, @BodyParam and others.
-
-#### Convert parameters to objects
-
-If you specify a class type to parameter that is decorated with parameter decorator,
-socket-controllers will use [class-transformer][4] to create instance of that class type.
-To disable this behaviour you need to specify a `{ useConstructorUtils: false }` in RoutingControllerOptions when creating a server.
-
-```typescript
-@Get("/users")
-getUsers(@QueryParam("filter") filter: UserFilter) {
-    // now you can use your filter, for example
-    if (filter.showAll === true)
-        return "all users";
-
-    return "not all users";
-}
-
-// you can send a request to http://localhost:3000/users?filter={"showAll": true}
-// and it will show you "all users"
-```
-
-If `UserFilter` is an interface - then simple literal object will be created.
-If its a class - then instance of this will be created.
-
-#### Set custom ContentType
-
-You can specify a custom ContentType:
-
-```typescript
-@Get("/users")
-@ContentType("text/cvs")
-getUsers() {
-    // ...
-}
-```
-#### Set Location
-
-You can set a location for any action:
-
-```typescript
-@Get("/users")
-@Location("http://github.com")
-getUsers() {
-    // ...
-}
-```
-
-#### Set Redirect
-
-You can set a redirect for any action:
-
-```typescript
-@Get("/users")
-@Redirect("http://github.com")
-getUsers() {
-    // ...
-}
-```
-
-#### Set custom HTTP code
-
-You can explicitly set a returned HTTP code for any action:
-
-```typescript
-@HttpCode(201)
-@Post("/users")
-saveUser(@Body() user: User) {
-    // ...
-}
-```
-
-Also, there are several additional decorators, that sets conditional http code:
-
-```typescript
-@Get("/users/:id")
-@EmptyResultCode(404)
-saveUser(@Param("id") id: number) {
-    return userRepository.findOneById(id);
-}
-```
-
-In this example `findOneById` returns undefined in the case if user with given was not found.
-This action will return 404 in the case if user was not found, and regular 200 in the case if it was found.
-`@EmptyResultCode` allows to set any HTTP code in the case if controller's action returned empty result (null or undefined).
-There are also `@NullResultCode` and `@UndefindeResultCode()` in the case if you want to return specific codes only
-if controller's action returned null or undefined respectively.
-
-#### Set custom headers
-
-You can set any custom header in a response:
-
-```typescript
-@Get("/users/:id")
-@Header("Cache-Control", "none")
-getOne(@Param("id") id: number) {
-    // ...
-}
-```
-#### Render templates
-
-You can set any custom header in a response:
-
-```typescript
-@Get("/users/:id")
-@Render("index.html")
-getOne() {
-    return {
-        param1: "these params are used",
-        param2: "in templating engine"
-    };
-}
-```
-
-To use rendering ability make sure to configure express properly.
-[Here](https://github.com/pleerock/socket-controllers/blob/0.6.0-release/test/functional/render-decorator.spec.ts)
-is a test where you can take a look how to do it.
-This feature is not supported by koa driver yet.
 
 ## Using middlewares
 
-You can use any exist express / koa middleware, or create your own.
-To create your middlewares there is a `@Middleware` decorator,
-and to use already exist middlewares there are `@UseBefore` and `@UseAfter` decorators.
-
-### Use exist middleware
-
-There are multiple ways to use middlewares.
-For example, lets try to use [compression](https://github.com/expressjs/compression) middleware:
-
-1. Install compression middleware: `npm install compression`
-2. To use middleware per-action:
-
-    ```typescript
-    import {Controller, Get, UseBefore} from "socket-controllers";
-    let compression = require("compression");
-
-    // ...
-
-    @Get("/users/:id")
-    @UseBefore(compression())
-    getOne(@Param("id") id: number) {
-        // ...
-    }
-    ```
-
-    This way compression middleware will be applied only for `getOne` controller action,
-    and will be executed *before* action execution.
-    To execute middleware *after* action use `@UseAfter` decorator instead.
-
-3. To use middleware per-controller:
-
-    ```typescript
-    import {Controller, UseBefore} from "socket-controllers";
-    let compression = require("compression");
-
-    @Controller()
-    @UseBefore(compression())
-    export class UserController {
-
-    }
-    ```
-
-    This way compression middleware will be applied for all actions of the `UserController` controller,
-    and will be executed *before* its action execution. Same way you can use `@UseAfter` decorator here.
-
-4. If you want to use compression module globally for all controllers you can simply register it during bootstrap:
-
-    ```typescript
-    import "reflect-metadata";
-    import {createExpressServer} from "socket-controllers";
-    import "./UserController";  // we need to "load" our controller before call createExpressServer. this is required
-    let compression = require("compression");
-    let app = createExpressServer(); // creates express app, registers all controller routes and returns you express app instance
-    app.use(compression());
-    app.listen(3000); // run express application
-    ```
-
-    Alternatively, you can create a custom [global middleware](#global-middlewares) and simply delegate its execution to the compression module.
-
-### Creating your own express middleware
-
-Here is example of creating middleware for express.js:
-
-1. To create your own middleware you need to create a class that implements a `MiddlewareInterface` interface and decorated
-with `@Middleware` decorator:
-
-    ```typescript
-    import {Middleware, MiddlewareInterface} from "socket-controllers";
-
-    @Middleware()
-    export class MyMiddleware implements MiddlewareInterface {
-
-        use(request: any, response: any, next?: (err?: any) => any): any {
-            console.log("do something...");
-            next();
-        }
-
-    }
-    ```
-
-    Here, we created our own middleware that prints `do something...` in the console.
-
-2. Second we need to load our middleware in `app.ts` before app bootstrap:
-
-    ```typescript
-    import "reflect-metadata";
-    import {createExpressServer} from "socket-controllers";
-    import "./UserController";
-    import "./MyMiddleware"; // here we load it
-    createExpressServer().listen(3000);
-    ```
-
-3. Now we can use our middleware:
-
-    ```typescript
-    import {Controller, UseBefore} from "socket-controllers";
-    import {MyMiddleware} from "./MyMiddleware";
-
-    @Controller()
-    @UseBefore(MyMiddleware)
-    export class UserController {
-
-    }
-    ```
-
-    or per-action:
-
-    ```typescript
-    @Get("/users/:id")
-    @UseBefore(MyMiddleware)
-    getOne(@Param("id") id: number) {
-        // ...
-    }
-    ```
-
-    This way your middleware will be executed each time before controller action.
-    You can use `@UseAfter(MyMiddleware)` to make it execute after each controller action.
-
-### Creating your own koa middleware
-
-Here is example of creating middleware for koa.js:
-
-1. To create your own middleware you need to create a class that implements a `MiddlewareInterface` interface and decorated
-with `@Middleware` decorator:
-
-    ```typescript
-    import {Middleware, MiddlewareInterface} from "socket-controllers";
-
-    @Middleware()
-    export class MyMiddleware implements MiddlewareInterface {
-
-        use(context: any, next: (err: any) => Promise<any>): Promise<any> {
-            console.log("do something before execution...");
-            return next().then(() => {
-                console.log("do something after execution");
-            }).catch(error => {
-                console.log("error handling is also here");
-            });
-        }
-
-    }
-    ```
-
-    Here, we created our own middleware that prints `do something...` in the console.
-
-2. Second we need to load our middleware in `app.ts` before app bootstrap:
-
-    ```typescript
-    import "reflect-metadata";
-    import {createKoaServer} from "socket-controllers";
-    import "./UserController";
-    import "./MyMiddleware"; // here we load it
-    createKoaServer().listen(3000);
-    ```
-
-3. Now we can use our middleware:
-
-    ```typescript
-    import {Controller, UseBefore} from "socket-controllers";
-    import {MyMiddleware} from "./MyMiddleware";
-
-    @Controller()
-    @UseBefore(MyMiddleware)
-    export class UserController {
-
-    }
-    ```
-
-    or per-action:
-
-    ```typescript
-    @Get("/users/:id")
-    @UseBefore(MyMiddleware)
-    getOne(@Param("id") id: number) {
-        // ...
-    }
-    ```
-
-    This way your middleware will be executed each time before controller action.
-    You can use `@UseAfter(MyMiddleware)` to make it execute after each controller action.
-
-### Global middlewares
+Middlewares are the functions passed to the `socketIo.use` method.
+Middlewares allows you to define a logic that will be executed each time request via socket is made.
+To create your middlewares use `@Middleware` decorator.
 
 Same way you created a middleware, you can create a global middleware:
 
 ```typescript
-import {MiddlewareGlobalBefore, MiddlewareInterface} from "socket-controllers";
+import {Middleware, MiddlewareInterface} from "socket-controllers";
 
-@MiddlewareGlobalBefore()
+@Middleware()
 export class CompressionMiddleware implements MiddlewareInterface {
 
-    use(request: any, response: any, next: (err: any) => any): void {
-        let compression = require("compression");
-        return compression()(request, response, next);
+    use(socket: any, next: ((err?: any) => any)) {
+        console.log("do something, for example get authorization token and check authorization");
+        next();
     }
 
 }
 ```
-In this example we simply delegate middleware to compression to use it globally.
-Global middleware runs before each request, always.
 
-You can make global middleware to run after controller action by using `@MiddlewareGlobalAfter` instead of `@MiddlewareGlobalBefore`.
- If you have issues with global middlewares run execution order you can set a priority: `@MiddlewareGlobalBefore({ priority: 1 })`.
- Higher priority means middleware being executed earlier.
+## Don't forget to load your controller and middlewares
 
-### Error handlers
-
-Error handlers are specific only to express.
-Error handlers works pretty much the same as middlewares, but instead of `@Middleware` decorator `@ErrorHandler` is being used:
-
-1. Create a class that implements a `ErrorHandlerInterface` interface and decorated with `@ErrorHandler` decorator:
-
-    ```typescript
-    import {ErrorHandler, ErrorHandlerInterface} from "socket-controllers";
-
-    @ErrorHandler()
-    export class CustomErrorHandler implements ErrorHandlerMiddlewareInterface {
-
-        error(error: any, request: any, response: any, next: (err: any) => any) {
-            console.log("do something...");
-            next();
-        }
-
-    }
-    ```
-
-2. Load created error handler before app bootstrap:
-
-    ```typescript
-    import "reflect-metadata";
-    import {createExpressServer} from "socket-controllers";
-    import "./UserController";
-    import "./CustomErrorHandler"; // here we load it
-    createExpressServer().listen(3000);
-    ```
-
-## Using interceptors
-
-Interceptors are used to change or replace the data returned to the client.
-You can create your own interceptor class or function and use to all or specific controller or controller action.
-It works pretty much the same as middlewares.
-
-### Interceptor function
-
-The easiest way is to use functions directly passed to `@UseInterceptor` of the action. 
-
-```typescript
-import {Get, Param, UseInterceptor} from "socket-controllers";
-
-// ...
-
-@Get("/users")
-@UseInterceptor(function(request: any, response: any, content: any) {
-    // here you have content returned by this action. you can replace something 
-    // in it and return a replaced result. replaced result will be returned to the user
-    return content.replace(/Mike/gi, "Michael");
-})
-getOne(@Param("id") id: number) {
-    return "Hello, I am Mike!"; // client will get a "Hello, I am Michael!" response.
-}
-```
-
-You can use `@UseInterceptor` per-action, on per-controller. 
-If its used per-controller then interceptor will apply to all controller actions.
-
-### Interceptor classes
-
-You can also create a class and use it with `@UseInterceptor` decorator:
-
-```typescript
-import {Interceptor, InterceptorInterface} from "socket-controllers";
-
-@Interceptor()
-export class NameCorrectionInterceptor implements InterceptorInterface {
-    
-    intercept(request: any, response: any, content: any) {
-        return content.replace(/Mike/gi, "Michael");
-    }
-    
-}
-```
-
-And use it in your controllers this way:
-
-```typescript
-import {Get, Param, UseInterceptor} from "socket-controllers";
-import {NameCorrectionInterceptor} from "./NameCorrectionInterceptor";
-
-// ...
-
-@Get("/users")
-@UseInterceptor(NameCorrectionInterceptor)
-getOne(@Param("id") id: number) {
-    return "Hello, I am Mike!"; // client will get a "Hello, I am Michael!" response.
-}
-```
-
-### Global interceptors
-
-You can create interceptors that will affect all controllers in your project by creating interceptor class
-and mark it with `@InterceptorGlobal` decorator:
-
-```typescript
-import {InterceptorGlobal, InterceptorInterface} from "socket-controllers";
-
-@InterceptorGlobal()
-export class NameCorrectionInterceptor implements InterceptorInterface {
-    
-    intercept(request: any, response: any, content: any) {
-        return content.replace(/Mike/gi, "Michael");
-    }
-    
-}
-```
-
-### Don't forget to load your middlewares, error handlers and interceptors
-
-Middlewares and error handlers should be loaded globally the same way as controllers, before app bootstrap:
+Controllers and middlewares should be loaded globally the same way as controllers, before app bootstrap:
 
 ```typescript
 import "reflect-metadata";
-import {createExpressServer} from "socket-controllers";
+import {createSocketServer} from "socket-controllers";
 import "./UserController";
 import "./MyMiddleware"; // here we load it
-import "./CustomErrorHandler"; // here we load it
-import "./BadWordInterceptor"; // here we load it
-let app = createExpressServer();
-app.listen(3000);
+let io = createSocketServer(3000);
 ```
 
 Also you can load middlewares from directories. Also you can use glob patterns:
 
 ```typescript
 import "reflect-metadata";
-import {createExpressServer, loadControllers} from "socket-controllers";
-createExpressServer({
+import {createSocketServer, loadControllers} from "socket-controllers";
+let io = createSocketServer(3000, {
     controllerDirs: [__dirname + "/controllers/**/*.js"],
     middlewareDirs: [__dirname + "/middlewares/**/*.js"]
-}).listen(3000);
+});
 ```
-
-## Creating instances of classes from action params
-
-When user sends a json object and you are parsing it, sometimes you want to parse it into object of some class,
-instead of parsing it into simple literal object.
-You have ability to do this using [class-transformer][4].
-To use it simply specify a `useConstructorUtils: true` option on application bootstrap:
-
-```typescript
-import "reflect-metadata";
-import {createExpressServer, useContainer, loadControllers} from "socket-controllers";
-
-createExpressServer({
-    useClassTransformer: true
-}).listen(3000);
-```
-
-Now, when you parse your action params, if you have specified a class, socket-controllers will create you a class
-of that instance with the data sent by a user:
-
-```typescript
-export class User {
-    firstName: string;
-    lastName: string;
-
-    getName(): string {
-        return this.lastName + " " + this.firstName;
-    }
-}
-
-@Controller()
-export class UserController {
-
-    post(@Body() user: User) {
-        console.log("saving user " + user.getName());
-    }
-
-}
-```
-
-This technique works not only with `@Body`, but also with `@Param`, `@QueryParam`, `@BodyParam` and other decorators.
-Learn more about class-transformer and how to handle more complex object constructions [here][4].
-This behaviour is enabled by default.
-If you want to disable it simply pass `useConstructorUtils: false` to createExpressServer method.
-
-## Default error handling
-
-Routing-controller comes with default error handling mechanism.
 
 ## Using DI container
 
@@ -903,28 +395,27 @@ Here is example how to integrate socket-controllers with [typedi](https://github
 
 ```typescript
 import "reflect-metadata";
-import {createExpressServer, useContainer} from "socket-controllers";
+import {createSocketServer, useContainer} from "socket-controllers";
 import {Container} from "typedi";
 
 // its important to set container before any operation you do with socket-controllers,
 // including importing controllers
 useContainer(Container);
 
-// create and run server
-createExpressServer({
+// create and run socket server
+let io = createSocketServer(3000, {
     controllerDirs: [__dirname + "/controllers/*.js"],
-    middlewareDirs: [__dirname + "/middlewares/*.js"],
-    interceptorDirs: [__dirname + "/interceptor/*.js"],
-}).listen(3000);
+    middlewareDirs: [__dirname + "/middlewares/*.js"]
+});
 ```
 
 That's it, now you can inject your services into your controllers:
 
 ```typescript
-@Controller()
-export class UsersController {
+@SocketController()
+export class MessageController {
 
-    constructor(private userRepository: UserRepository) {
+    constructor(private messageRepository: MessageRepository) {
     }
 
     // ... controller actions
@@ -934,22 +425,27 @@ export class UsersController {
 
 ## Decorators Reference
 
-| Signature                                                                    | Example                                              | Description                                                                                                                                                                                                                                                                                                                                                                                                                                          |
-|------------------------------------------------------------------------------|------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `@Controller(baseRoute: string)`                                             | `@Controller("/users") class SomeController`         | Class that is marked with this decorator is registered as controller and its annotated methods are registered as actions. Base route is used to concatenate it to all controller action routes.                                                                                                                                                                                                                                                     |
-| `@Get(route: string|RegExp)`                                                 | `@Get("/users") all()`                               | Methods marked with this decorator will register a request made with GET HTTP Method to a given route. In action options you can specify if action should response json or regular text response.                 
-| `@Post(route: string|RegExp)`                                                | `@Post("/users") save()`                             | Methods marked with this decorator will register a request made with POST HTTP Method to a given route. In action options you can specify if action should response json or regular text response.                
-| `@Put(route: string|RegExp)`                                                 | `@Put("/users/:id") update()`                        | Methods marked with this decorator will register a request made with PUT HTTP Method to a given route. In action options you can specify if action should response json or regular text response.                 
-| `@Patch(route: string|RegExp)`                                               | `@Patch("/users/:id") patch()`                       | Methods marked with this decorator will register a request made with PATCH HTTP Method to a given route. In action options you can specify if action should response json or regular text response.               
-| `@Delete(route: string|RegExp)`                                              | `@Delete("/users/:id") delete()`                     | Methods marked with this decorator will register a request made with DELETE HTTP Method to a given route. In action options you can specify if action should response json or regular text response.              
-| `@Head(route: string|RegExp)`                                                | `@Head("/users/:id") head()`                         | Methods marked with this decorator will register a request made with HEAD HTTP Method to a given route. In action options you can specify if action should response json or regular text response.                
-| `@Options(route: string|RegExp)`                                             | `@Options("/users/:id") head()`                      | Methods marked with this decorator will register a request made with OPTIONS HTTP Method to a given route. In action options you can specify if action should response json or regular text response.             
-| `@Method(methodName: string, route: string|RegExp)`                          | `@Method("move", "/users/:id") move()`               | Methods marked with this decorator will register a request made with given `methodName` HTTP Method to a given route. In action options you can specify if action should response json or regular text response.  
+| Signature                                           | Description                                                                                                                                                                                                                                                                 |
+|-----------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `@SocketController(namespace?: string)`             | Registers a class to be a socket controller that can listen to websocket events and respond to them.                                                                                                                                                                        |
+| `@OnMessage(messageName: string)`                   | Registers controller's action to be executed when socket receives message with given name.                                                                                                                                                                                  |
+| `@OnConnect()`                                      | Registers controller's action to be executed when client connects to the socket.                                                                                                                                                                                            |
+| `@OnDisconnect()`                                   | Registers controller's action to be executed when client disconnects from the socket.                                                                                                                                                                                       |
+| `@ConnectedSocket()`                                | Injects connected client's socket object to the controller action.                                                                                                                                                                                                          |
+| `@SocketIO()`                                       | Injects socket.io object that initialized a connection.                                                                                                                                                                                                                     |
+| `@MessageBody()`                                    | Injects received message body.                                                                                                                                                                                                                                              |
+| `@SocketQueryParam(paramName: string)`              | Injects query parameter from the received socket request.                                                                                                                                                                                                                   |
+| `@SocketId()`                                       | Injects socket id from the received request.                                                                                                                                                                                                                                |
+| `@SocketRequest()`                                  | Injects request object received by socket.                                                                                                                                                                                                                                  |
+| `@SocketRooms()`                                    | Injects rooms of the connected socket client.                                                                                                                                                                                                                               |
+| `@Middleware()`                                     | Registers a new middleware to be registered in the socket.io.                                                                                                                                                                                                               |
+| `@EmitOnSuccess(messageName: string)`               | If this decorator is set then after controller action will emit message with the given name after action execution. It will emit message only if controller succeed without errors. If result is a Promise then it will wait until promise is resolved and emit a message.  |
+| `@EmitOnFail(messageName: string)`                  | If this decorator is set then after controller action will emit message with the given name after action execution. It will emit message only if controller throw an exception. If result is a Promise then it will wait until promise throw an error and emit a message.   |
+| `@SkipEmitOnEmptyResult()`                          | Used in conjunction with @EmitOnSuccess and @EmitOnFail decorators. If result returned by controller action is null or undefined then messages will not be emitted by @EmitOnSuccess or @EmitOnFail decorators.                                                             |                                                                                                                                                                     |
 
 ## Samples
 
-* Take a look on [socket-controllers with angular 2](https://github.com/pleerock/socket-controllers-angular2-demo) which is using socket-controllers.
-* Take a look on samples in [./sample](https://github.com/pleerock/socket-controllers/tree/master/sample) for more examples
+Take a look on samples in [./sample](https://github.com/pleerock/socket-controllers/tree/master/sample) for more examples
 of usage.
 
 ## Related projects
@@ -957,7 +453,4 @@ of usage.
 * If you are interested to create controller-based express or koa server use [routing-controllers](https://github.com/pleerock/routing-controllers) module.
 * If you need to use dependency injection in use [typedi](https://github.com/pleerock/typedi) module.
 
-[1]: http://expressjs.com/
-[2]: http://koajs.com/
-[3]: https://github.com/expressjs/multer
-[4]: https://github.com/pleerock/class-transformer
+[1]: https://github.com/pleerock/class-transformer

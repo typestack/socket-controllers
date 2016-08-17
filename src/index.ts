@@ -11,7 +11,7 @@ import {SocketControllersOptions} from "./SocketControllersOptions";
 /**
  * Registers all loaded actions in your express application.
  */
-export function useSocketIoServer<T>(io: T, options?: SocketControllersOptions): T {
+export function useSocketServer<T>(io: T, options?: SocketControllersOptions): T {
     createExecutor(io, options || {});
     return io;
 }
@@ -19,7 +19,7 @@ export function useSocketIoServer<T>(io: T, options?: SocketControllersOptions):
 /**
  * Registers all loaded actions in your express application.
  */
-export function createSocketIoServer(port: number, options?: SocketControllersOptions): any {
+export function createSocketServer(port: number, options?: SocketControllersOptions): any {
     const io = require("socket.io")(port);
     createExecutor(io, options || {});
     return io;
@@ -66,3 +66,4 @@ export function defaultMetadataArgsStorage(): MetadataArgsStorage {
 export * from "./container";
 export * from "./decorators";
 export * from "./SocketControllersOptions";
+export * from "./MiddlewareInterface";

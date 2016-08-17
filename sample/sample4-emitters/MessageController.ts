@@ -1,6 +1,13 @@
 import {
-    OnConnect, SocketController, ConnectedSocket, OnDisconnect, MessageBody, OnMessage,
-    EmitOnSuccess, EmitOnFail, SkipEmitOnEmptyResult
+    OnConnect,
+    SocketController,
+    ConnectedSocket,
+    OnDisconnect,
+    MessageBody,
+    OnMessage,
+    EmitOnSuccess,
+    EmitOnFail,
+    SkipEmitOnEmptyResult
 } from "../../src/decorators";
 import {Message} from "./Message";
 
