@@ -1,4 +1,4 @@
-import {OnConnect, SocketController, ConnectedSocket, OnDisconnect, SocketBody, OnMessage} from "../../src/decorators";
+import {OnConnect, SocketController, ConnectedSocket, OnDisconnect, MessageBody, OnMessage} from "../../src/decorators";
 import {Message} from "./Message";
 
 @SocketController()
@@ -15,7 +15,7 @@ export class MessageController {
     }
 
     @OnMessage("save")
-    save(@ConnectedSocket() socket: any, @SocketBody() message: Message) {
+    save(@ConnectedSocket() socket: any, @MessageBody() message: Message) {
         console.log("received message:", message);
         console.log("setting id to the message and sending it back to the client");
         message.id = 1;

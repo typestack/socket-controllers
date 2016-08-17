@@ -1,7 +1,7 @@
 <html>
 <script src="../../node_modules/socket.io-client/socket.io.js"></script>
 <script>
-    var socket = io('http://localhost:3001');
+    var socket = io("http://localhost:3001");
     socket.on("message_saved", function (message) {
         console.log("Saved message received back: ", message);
     });

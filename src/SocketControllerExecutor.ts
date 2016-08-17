@@ -1,6 +1,6 @@
 import {MetadataBuilder} from "./metadata-builder/MetadataBuilder";
 import {ActionMetadata} from "./metadata/ActionMetadata";
-import {ClassTransformOptions, plainToClass} from "class-transformer";
+import {ClassTransformOptions, plainToClass, classToPlain} from "class-transformer";
 import {ActionTypes} from "./metadata/types/ActionTypes";
 import {ParamMetadata} from "./metadata/ParamMetadata";
 import {ParameterParseJsonError} from "./error/ParameterParseJsonError";
@@ -53,7 +53,8 @@ export class SocketControllerExecutor {
     // -------------------------------------------------------------------------
 
     execute() {
-        this.registerActions();
+        this.registerControllers();
+        this.registerMiddlewares();
     }
 
     // -------------------------------------------------------------------------
@@ -61,9 +62,26 @@ export class SocketControllerExecutor {
     // -------------------------------------------------------------------------
 
     /**
-     * Registers actions in the driver.
+     * Registers middlewares.
      */
-    private registerActions(classes?: Function[]): this {
+    private registerMiddlewares(classes?: Function[]): this {
+        const middlewares = this.metadataBuilder.buildMiddlewareMetadata(classes);
+
+        middlewares
+            .sort((middleware1, middleware2) => middleware1.priority - middleware2.priority)
+            .forEach(middleware => {
+                this.io.use((socket: any, next: (err?: any) => any) => {
+                    middleware.instance.use(socket, next);
+                });
+            });
+
+        return this;
+    }
+
+    /**
+     * Registers controllers.
+     */
+    private registerControllers(classes?: Function[]): this {
         const controllers = this.metadataBuilder.buildControllerMetadata(classes);
         const controllersWithoutNamespaces = controllers.filter(ctrl => !ctrl.namespace);
         const controllersWithNamespaces = controllers.filter(ctrl => !!ctrl.namespace);
@@ -83,19 +101,29 @@ export class SocketControllerExecutor {
         controllers.forEach(controller => {
             controller.actions.forEach(action => {
                 if (action.type === ActionTypes.CONNECT) {
-                    this.handleAction(action, { socket: socket });
+                    this.handleAction(action, { socket: socket })
+                        .then(result => this.handleSuccessResult(result, action, socket))
+                        .catch(error => this.handleFailResult(error, action, socket));
 
                 } else if (action.type === ActionTypes.DISCONNECT) {
-                    socket.on("disconnect", () => this.handleAction(action, { socket: socket }));
+                    socket.on("disconnect", () => {
+                        this.handleAction(action, { socket: socket })
+                            .then(result => this.handleSuccessResult(result, action, socket))
+                            .catch(error => this.handleFailResult(error, action, socket));
+                    });
 
                 } else if (action.type === ActionTypes.MESSAGE) {
-                    socket.on(action.name, (data: any) => this.handleAction(action, { socket: socket, data: data }));
+                    socket.on(action.name, (data: any) => {
+                        this.handleAction(action, { socket: socket, data: data })
+                            .then(result => this.handleSuccessResult(result, action, socket))
+                            .catch(error => this.handleFailResult(error, action, socket));
+                    });
                 }
             });
         });
     }
 
-    private handleAction(action: ActionMetadata, options: { socket?: any, data?: any }) {
+    private handleAction(action: ActionMetadata, options: { socket?: any, data?: any }): Promise<any> {
         
         // compute all parameters
         const paramsPromises = action.params
@@ -125,11 +153,12 @@ export class SocketControllerExecutor {
             });
 
         // after all parameters are computed
-        Promise.all(paramsPromises).then(params => {
-            action.executeAction(params);
-        }).catch(error => {
+        const paramsPromise = Promise.all(paramsPromises).catch(error => {
             console.log("Error during computation params of the socket controller: ", error);
             throw error;
+        });
+        return paramsPromise.then(params => {
+            return action.executeAction(params);
         });
     }
 
@@ -184,6 +213,31 @@ export class SocketControllerExecutor {
             }
         } catch (er) {
             throw new ParameterParseJsonError(value);
+        }
+    }
+
+    private handleSuccessResult(result: any, action: ActionMetadata, socket: any) {
+        if (result !== null && result !== undefined && action.emitOnSuccess) {
+            const transformOptions = action.emitOnSuccess.classTransformOptions || this.classToPlainTransformOptions;
+            let transformedResult = this.useClassTransformer && result instanceof Object ? classToPlain(result, transformOptions) : result;
+            socket.emit(action.emitOnSuccess.value, transformedResult);
+
+        } else if ((result === null || result === undefined) && action.emitOnSuccess && !action.skipEmitOnEmptyResult) {
+            socket.emit(action.emitOnSuccess.value);
+        }
+    }
+
+    private handleFailResult(result: any, action: ActionMetadata, socket: any) {
+        if (result !== null && result !== undefined && action.emitOnFail) {
+            const transformOptions = action.emitOnSuccess.classTransformOptions || this.classToPlainTransformOptions;
+            let transformedResult = this.useClassTransformer && result instanceof Object ? classToPlain(result, transformOptions) : result;
+            if (result instanceof Error && !Object.keys(transformedResult).length) {
+                transformedResult = result.toString();
+            }
+            socket.emit(action.emitOnFail.value, transformedResult);
+
+        } else if ((result === null || result === undefined) && action.emitOnFail && !action.skipEmitOnEmptyResult) {
+            socket.emit(action.emitOnFail.value);
         }
     }
 

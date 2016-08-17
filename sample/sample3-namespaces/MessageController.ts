@@ -1,7 +1,7 @@
 import {OnConnect, SocketController, ConnectedSocket, OnDisconnect, MessageBody, OnMessage} from "../../src/decorators";
 import {Message} from "./Message";
 
-@SocketController()
+@SocketController("/messages")
 export class MessageController {
 
     @OnConnect()

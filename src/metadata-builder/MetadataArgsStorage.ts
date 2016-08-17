@@ -1,6 +1,8 @@
 import {SocketControllerMetadataArgs} from "../metadata/args/SocketControllerMetadataArgs";
 import {ActionMetadataArgs} from "../metadata/args/ActionMetadataArgs";
 import {ParamMetadataArgs} from "../metadata/args/ParamMetadataArgs";
+import {MiddlewareMetadataArgs} from "../metadata/args/MiddlewareMetadataArgs";
+import {ResultMetadataArgs} from "../metadata/args/ResultMetadataArgs";
 
 /**
  * Storage all metadatas read from decorators.
@@ -12,7 +14,9 @@ export class MetadataArgsStorage {
     // -------------------------------------------------------------------------
 
     controllers: SocketControllerMetadataArgs[] = [];
+    middlewares: MiddlewareMetadataArgs[] = [];
     actions: ActionMetadataArgs[] = [];
+    results: ResultMetadataArgs[] = [];
     params: ParamMetadataArgs[] = [];
 
     // -------------------------------------------------------------------------
@@ -25,8 +29,20 @@ export class MetadataArgsStorage {
         });
     }
 
+    findMiddlewareMetadatasForClasses(classes: Function[]): MiddlewareMetadataArgs[] {
+        return this.middlewares.filter(middleware => {
+            return classes.filter(cls => middleware.target === cls).length > 0;
+        });
+    }
+
     findActionsWithTarget(target: Function): ActionMetadataArgs[] {
         return this.actions.filter(action => action.target === target);
+    }
+
+    findResutlsWithTargetAndMethod(target: Function, methodName: string): ResultMetadataArgs[] {
+        return this.results.filter(result => {
+            return result.target === target && result.method === methodName;
+        });
     }
 
     findParamsWithTargetAndMethod(target: Function, methodName: string): ParamMetadataArgs[] {
@@ -40,6 +56,7 @@ export class MetadataArgsStorage {
      */
     reset() {
         this.controllers = [];
+        this.middlewares = [];
         this.actions = [];
         this.params = [];
     }

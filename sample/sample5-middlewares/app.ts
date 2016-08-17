@@ -1,6 +1,9 @@
 import "reflect-metadata";
 import {createSocketIoServer} from "../../src/index";
 
+// import all required files
+
+import "./AuthenitificationMiddleware";
 import "./MessageController";
 
 createSocketIoServer(3001); // creates socket.io server and registers all controllers there

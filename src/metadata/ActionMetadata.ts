@@ -2,6 +2,8 @@ import {ParamMetadata} from "./ParamMetadata";
 import {ActionMetadataArgs} from "./args/ActionMetadataArgs";
 import {ActionType} from "./types/ActionTypes";
 import {ControllerMetadata} from "./ControllerMetadata";
+import {ResultMetadata} from "./ResultMetadata";
+import {ResultTypes} from "./types/ResultTypes";
 
 export class ActionMetadata {
 
@@ -18,6 +20,11 @@ export class ActionMetadata {
      * Action's parameters.
      */
     params: ParamMetadata[];
+
+    /**
+     * Action's result handlers.
+     */
+    results: ResultMetadata[];
 
     /**
      * Message name served by this action.
@@ -59,5 +66,21 @@ export class ActionMetadata {
     executeAction(params: any[]) {
         return this.controllerMetadata.instance[this.method].apply(this.controllerMetadata.instance, params);
     }
+
+    // -------------------------------------------------------------------------
+    // Accessors
+    // -------------------------------------------------------------------------
+
+    get emitOnSuccess() {
+        return this.results.find(resultHandler => resultHandler.type === ResultTypes.EMIT_ON_SUCCESS);
+    };
+
+    get emitOnFail() {
+        return this.results.find(resultHandler => resultHandler.type === ResultTypes.EMIT_ON_FAIL);
+    };
+
+    get skipEmitOnEmptyResult() {
+        return this.results.find(resultHandler => resultHandler.type === ResultTypes.SKIP_EMIT_ON_EMPTY_RESULT);
+    };
 
 }

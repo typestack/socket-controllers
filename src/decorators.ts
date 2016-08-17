@@ -5,6 +5,10 @@ import {ActionTypes} from "./metadata/types/ActionTypes";
 import {ParamMetadataArgs} from "./metadata/args/ParamMetadataArgs";
 import {ParamTypes} from "./metadata/types/ParamTypes";
 import {ClassTransformOptions} from "class-transformer";
+import {MiddlewareMetadataArgs} from "./metadata/args/MiddlewareMetadataArgs";
+import {MiddlewareInterface} from "./MiddlewareInterface";
+import {ResultMetadataArgs} from "./metadata/args/ResultMetadataArgs";
+import {ResultTypes} from "./metadata/types/ResultTypes";
 
 /**
  * Registers a class to be a socket controller that can listen to events and respond to them.
@@ -84,7 +88,7 @@ export function ConnectedSocket() {
 /**
  * Injects message body.
  */
-export function SocketBody(options?: { classTransformOptions?: ClassTransformOptions }) {
+export function MessageBody(options?: { classTransformOptions?: ClassTransformOptions }) {
     return function (object: Object, methodName: string, index: number) {
         let format = (Reflect as any).getMetadata("design:paramtypes", object, methodName)[index];
         const metadata: ParamMetadataArgs = {
@@ -170,5 +174,58 @@ export function SocketRooms() {
             reflectedType: format
         };
         defaultMetadataArgsStorage().params.push(metadata);
+    };
+}
+
+export function Middleware(options?: { priority?: number }): Function {
+    return function (object: Function) {
+        const metadata: MiddlewareMetadataArgs = {
+            target: object,
+            priority: options && options.priority ? options.priority : undefined
+        };
+        defaultMetadataArgsStorage().middlewares.push(metadata);
+    };
+}
+
+/**
+ */
+export function EmitOnSuccess(messageName?: string, options?: { classTransformOptions?: ClassTransformOptions }): Function {
+    return function (object: Object, methodName: string) {
+        const metadata: ResultMetadataArgs = {
+            target: object.constructor,
+            method: methodName,
+            type: ResultTypes.EMIT_ON_SUCCESS,
+            value: messageName,
+            classTransformOptions: options && options.classTransformOptions ? options.classTransformOptions : undefined
+        };
+        defaultMetadataArgsStorage().results.push(metadata);
+    };
+}
+
+/**
+ */
+export function EmitOnFail(messageName?: string, options?: { classTransformOptions?: ClassTransformOptions }): Function {
+    return function (object: Object, methodName: string) {
+        const metadata: ResultMetadataArgs = {
+            target: object.constructor,
+            method: methodName,
+            type: ResultTypes.EMIT_ON_FAIL,
+            value: messageName,
+            classTransformOptions: options && options.classTransformOptions ? options.classTransformOptions : undefined
+        };
+        defaultMetadataArgsStorage().results.push(metadata);
+    };
+}
+
+/**
+ */
+export function SkipEmitOnEmptyResult(): Function {
+    return function (object: Object, methodName: string) {
+        const metadata: ResultMetadataArgs = {
+            target: object.constructor,
+            method: methodName,
+            type: ResultTypes.SKIP_EMIT_ON_EMPTY_RESULT
+        };
+        defaultMetadataArgsStorage().results.push(metadata);
     };
 }
