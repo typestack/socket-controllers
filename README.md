@@ -8,7 +8,7 @@
 [![Join the chat at https://gitter.im/pleerock/socket-controllers](https://badges.gitter.im/pleerock/socket-controllers.svg)](https://gitter.im/pleerock/socket-controllers?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 Use class-based controllers to handle websocket events. 
-Helps to organize your code working with websockets in classes.
+Helps to organize your code using websockets in classes.
 
 ## Installation
 
@@ -37,9 +37,9 @@ Helps to organize your code working with websockets in classes.
     import "es6-shim";
     ```
 
-4. Optionally you can install scoket.io [typings](https://github.com/typings/typings):
+4. Optionally you can install socket.io [typings](https://github.com/typings/typings):
 
-    `typings install dt~scoket.io --save --global`
+    `typings install dt~socket.io --save --global`
 
 
 ## Example of usage
@@ -79,7 +79,7 @@ Helps to organize your code working with websockets in classes.
     import "es6-shim"; // this shim is optional if you are using old version of node
     import "reflect-metadata"; // this shim is required
     import {createSocketServer} from "socket-controllers";
-    import "./UserController";  // we need to "load" our controller before call createServer. this is required
+    import "./MessageController";  // we need to "load" our controller before call createSocketServer. this is required
      
     createSocketServer(3001);
     ```
@@ -88,9 +88,10 @@ Helps to organize your code working with websockets in classes.
 
 ## More usage examples
 
-#### Executing operations on socket client connect / disconnect
+#### Run code on socket client connect / disconnect
 
-To get connected socket decorator you need to use `@ConnectedSocket()` decorator.
+Controller action marked with `@OnConnect()` decorator is called once new client connected.
+Controller action marked with `@OnDisconnect()` decorator is called once client disconnected.
 
 ```typescript
 import {SocketController, OnConnect, OnDisconnect} from "socket-controllers";
@@ -113,7 +114,7 @@ export class MessageController {
 
 #### `@ConnectedSocket()` decorator
 
-To get connected socket decorator you need to use `@ConnectedSocket()` decorator.
+To get connected socket instance you need to use `@ConnectedSocket()` decorator.
 
 ```typescript
 import {SocketController, OnMessage, ConnectedSocket} from "socket-controllers";
@@ -131,7 +132,7 @@ export class MessageController {
 
 #### `@MessageBody()` decorator
 
-To get received message body by using `@MessageBody()` decorator.
+To get received message body use `@MessageBody()` decorator:
 
 ```typescript
 import {SocketController, OnMessage, MessageBody} from "socket-controllers";
@@ -148,12 +149,12 @@ export class MessageController {
 ```
 
 If you specify a class type to parameter that is decorated with `@MessageBody()`,
-socket-controllers will use [class-transformer][4] to create instance of the given class type with the data received in the message.
+socket-controllers will use [class-transformer][1] to create instance of the given class type with the data received in the message.
 To disable this behaviour you need to specify a `{ useConstructorUtils: false }` in SocketControllerOptions when creating a server.
 
 #### `@SocketQueryParam()` decorator
 
-To get received query parameter by using `@SocketQueryParam()` decorator.
+To get received query parameter use `@SocketQueryParam()` decorator.
 
 ```typescript
 import {SocketController, OnMessage, MessageBody} from "socket-controllers";
@@ -170,6 +171,8 @@ export class MessageController {
 ```
 
 #### Get socket client id using `@SocketId()` decorator
+
+To get connected client id use `@SocketId()` decorator.
 
 ```typescript
 import {SocketController, OnMessage, MessageBody} from "socket-controllers";
@@ -219,7 +222,7 @@ export class MessageController {
 }
 ```
 
-If you return something, it will be returned in the emitted message data
+If you return something, it will be returned in the emitted message data:
 
 ```typescript
 import {SocketController, OnMessage, EmitOnSuccess} from "socket-controllers";
@@ -287,12 +290,12 @@ export class MessageController {
 
 In this case if findAll will return undefined, `get_success` message will not be emitted.
 If findAll will return array of messages, they will be emitted back to the client in the `get_success` message.
-This example also demonstrates that Promises are supports. 
+This example also demonstrates Promises support. 
 If promise returned by controller action, message will be emitted only after promise will be resolved.
 
 #### Using exist server instead of creating a new one
 
-If you have, or if you want to create and configure socket.io server,
+If you need to create and configure socket.io server manually,
 you can use `useSocketServer` instead of `createSocketServer` function.
 Here is example of creating socket.io server and configuring it with express:
 
@@ -345,10 +348,8 @@ export class MessageController {
 ## Using middlewares
 
 Middlewares are the functions passed to the `socketIo.use` method.
-Middlewares allows you to define a logic that will be executed each time request via socket is made.
-To create your middlewares use `@Middleware` decorator.
-
-Same way you created a middleware, you can create a global middleware:
+Middlewares allows you to define a logic that will be executed each time client connected to the server.
+To create your middlewares use `@Middleware` decorator:
 
 ```typescript
 import {Middleware, MiddlewareInterface} from "socket-controllers";
@@ -364,19 +365,19 @@ export class CompressionMiddleware implements MiddlewareInterface {
 }
 ```
 
-## Don't forget to load your controller and middlewares
+## Don't forget to load your controllers and middlewares
 
-Controllers and middlewares should be loaded globally the same way as controllers, before app bootstrap:
+Controllers and middlewares should be loaded globally, before app bootstrap:
 
 ```typescript
 import "reflect-metadata";
 import {createSocketServer} from "socket-controllers";
-import "./UserController";
+import "./MessageController";
 import "./MyMiddleware"; // here we load it
 let io = createSocketServer(3000);
 ```
 
-Also you can load middlewares from directories. Also you can use glob patterns:
+Also you can load them from directories. Also you can use glob patterns:
 
 ```typescript
 import "reflect-metadata";
@@ -389,8 +390,8 @@ let io = createSocketServer(3000, {
 
 ## Using DI container
 
-`socket-controllers` supports a DI container out of the box. You can inject your services into your controllers,
-middlewares and error handlers. Container must be setup during application bootstrap.
+`socket-controllers` supports a DI container out of the box. You can inject your services into your controllers and 
+middlewares. Container must be setup during application bootstrap.
 Here is example how to integrate socket-controllers with [typedi](https://github.com/pleerock/typedi):
 
 ```typescript
