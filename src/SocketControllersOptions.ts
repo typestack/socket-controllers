@@ -8,7 +8,7 @@ export interface SocketControllersOptions {
     /**
      * List of directories from where to "require" all your controllers.
      */
-    controllerDirs?: string[];
+    controllers?: string[];
 
     /**
      * Indicates if class-transformer package should be used to perform message body serialization / deserialization.

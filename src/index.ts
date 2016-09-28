@@ -32,8 +32,8 @@ function createExecutor(io: any, options: SocketControllersOptions): void {
     const executor = new SocketControllerExecutor(io);
 
     // second import all controllers and middlewares and error handlers
-    if (options && options.controllerDirs && options.controllerDirs.length)
-        importClassesFromDirectories(options.controllerDirs);
+    if (options && options.controllers && options.controllers.length)
+        importClassesFromDirectories(options.controllers);
 
     if (options.useClassTransformer !== undefined) {
         executor.useClassTransformer = options.useClassTransformer;

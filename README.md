@@ -330,7 +330,7 @@ import "reflect-metadata"; // this shim is required
 import {createSocketServer, loadControllers} from "socket-controllers";
 
 createSocketServer(3000, {
-    controllerDirs: [__dirname + "/controllers/*.js"]
+    controllers: [__dirname + "/controllers/*.js"]
 }); // registers all given controllers
 ```
 
@@ -383,7 +383,7 @@ Also you can load them from directories. Also you can use glob patterns:
 import "reflect-metadata";
 import {createSocketServer, loadControllers} from "socket-controllers";
 let io = createSocketServer(3000, {
-    controllerDirs: [__dirname + "/controllers/**/*.js"],
+    controllers: [__dirname + "/controllers/**/*.js"],
     middlewareDirs: [__dirname + "/middlewares/**/*.js"]
 });
 ```
@@ -405,7 +405,7 @@ useContainer(Container);
 
 // create and run socket server
 let io = createSocketServer(3000, {
-    controllerDirs: [__dirname + "/controllers/*.js"],
+    controllers: [__dirname + "/controllers/*.js"],
     middlewareDirs: [__dirname + "/middlewares/*.js"]
 });
 ```
