@@ -1,4 +1,3 @@
-import "es6-shim";
 import {Gulpclass, Task, SequenceTask, MergedTask} from "gulpclass";
 
 const gulp = require("gulp");
@@ -36,7 +35,7 @@ export class Gulpfile {
      */
     @Task()
     compile() {
-        return gulp.src("*.js", { read: false })
+        return gulp.src("package.json", { read: false })
             .pipe(shell(["tsc"]));
     }
 
@@ -49,7 +48,7 @@ export class Gulpfile {
      */
     @Task()
     npmPublish() {
-        return gulp.src("*.js", { read: false })
+        return gulp.src("package.json", { read: false })
             .pipe(shell([
                 "cd ./build/package && npm publish"
             ]));
@@ -61,9 +60,9 @@ export class Gulpfile {
     @MergedTask()
     packageCompile() {
         const tsProject = ts.createProject("tsconfig.json");
-        const tsResult = gulp.src(["./src/**/*.ts", "./typings/**/*.ts"])
+        const tsResult = gulp.src(["./src/**/*.ts"])
             .pipe(sourcemaps.init())
-            .pipe(ts(tsProject));
+            .pipe(tsProject());
 
         return [
             tsResult.dts.pipe(gulp.dest("./build/package")),
@@ -114,15 +113,6 @@ export class Gulpfile {
     }
 
     /**
-     * This task will copy typings.json file to the build package.
-     */
-    @Task()
-    copyTypingsFile() {
-        return gulp.src("./typings.json")
-            .pipe(gulp.dest("./build/package"));
-    }
-
-    /**
      * Creates a package that can be published to npm.
      */
     @SequenceTask()
@@ -132,7 +122,7 @@ export class Gulpfile {
             "packageCompile",
             "packageMoveCompiledFiles",
             "packageClearCompileDirectory",
-            ["packagePreparePackageFile", "packageReadmeFile", "copyTypingsFile"]
+            ["packagePreparePackageFile", "packageReadmeFile"]
         ];
     }
 
@@ -167,7 +157,7 @@ export class Gulpfile {
      */
     @Task()
     coveragePre() {
-        return gulp.src(["./build/es5/src/**/*.js"])
+        return gulp.src(["./build/compiled/src/**/*.js"])
             .pipe(istanbul())
             .pipe(istanbul.hookRequire());
     }
@@ -181,7 +171,7 @@ export class Gulpfile {
         chai.use(require("sinon-chai"));
         chai.use(require("chai-as-promised"));
 
-        return gulp.src(["./build/es5/test/functional/**/*.js"])
+        return gulp.src(["./build/compiled/test/functional/**/*.js"])
             .pipe(mocha())
             .pipe(istanbul.writeReports());
     }

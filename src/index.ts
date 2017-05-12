@@ -1,7 +1,6 @@
 import {MetadataArgsStorage} from "./metadata-builder/MetadataArgsStorage";
 import {importClassesFromDirectories} from "./util/DirectoryExportedClassesLoader";
 import {SocketControllerExecutor} from "./SocketControllerExecutor";
-import {getFromContainer} from "./container";
 import {SocketControllersOptions} from "./SocketControllersOptions";
 
 // -------------------------------------------------------------------------
@@ -56,7 +55,10 @@ function createExecutor(io: any, options: SocketControllersOptions): void {
  * Gets the metadata arguments storage.
  */
 export function defaultMetadataArgsStorage(): MetadataArgsStorage {
-    return getFromContainer(MetadataArgsStorage);
+    if (!(global as any).socketControllersMetadataArgsStorage)
+        (global as any).socketControllersMetadataArgsStorage = new MetadataArgsStorage();
+
+    return (global as any).socketControllersMetadataArgsStorage;
 }
 
 // -------------------------------------------------------------------------
