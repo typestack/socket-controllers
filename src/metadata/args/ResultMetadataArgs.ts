@@ -22,6 +22,7 @@ export interface ResultMetadataArgs {
      */
     type: ResultType;
 
+    errorType?: Function | string;
+
     classTransformOptions?: ClassTransformOptions;
-    
 }

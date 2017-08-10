@@ -7,6 +7,7 @@ import {
     OnMessage,
     EmitOnSuccess,
     EmitOnFail,
+    EmitOnError,
     SkipEmitOnEmptyResult
 } from "../../src/decorators";
 import {Message} from "./Message";
@@ -27,12 +28,14 @@ export class MessageController {
     @OnMessage("save")
     @EmitOnSuccess("message_save_success")
     @EmitOnFail("message_save_failed")
+    @EmitOnError("test", () => TestException)
     @SkipEmitOnEmptyResult()
     save(@ConnectedSocket() socket: any, @MessageBody() message: Message) {
         console.log("received message:", message);
         console.log("setting id to the message and sending it back to the client");
         message.id = 1;
-        return message;
+        throw new Error();
+        // return message;
     }
 
     @OnMessage("try_to_save")
@@ -44,4 +47,8 @@ export class MessageController {
         throw new Error("No, cannot save =(");
     }
 
+}
+
+export class TestException {
+    constructor(public message?: string) { }
 }

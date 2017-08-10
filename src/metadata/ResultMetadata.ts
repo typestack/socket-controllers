@@ -29,6 +29,8 @@ export class ResultMetadata {
      */
     value: any;
 
+    errorType: Function | string;
+
     classTransformOptions: ClassTransformOptions;
 
     // -------------------------------------------------------------------------
@@ -41,6 +43,7 @@ export class ResultMetadata {
         this.method = args.method;
         this.type = args.type;
         this.value = args.value;
+        this.errorType = args.errorType instanceof Function ? (args.errorType as () => any)() : args.errorType;
         this.classTransformOptions = args.classTransformOptions;
     }
 

@@ -8,6 +8,7 @@ import {ClassTransformOptions} from "class-transformer";
 import {MiddlewareMetadataArgs} from "./metadata/args/MiddlewareMetadataArgs";
 import {ResultMetadataArgs} from "./metadata/args/ResultMetadataArgs";
 import {ResultTypes} from "./metadata/types/ResultTypes";
+import {ObjectType} from './util/ObjectType';
 
 /**
  * Registers a class to be a socket controller that can listen to websocket events and respond to them.
@@ -235,6 +236,21 @@ export function EmitOnFail(messageName: string, options?: { classTransformOption
         };
         defaultMetadataArgsStorage().results.push(metadata);
     };
+}
+
+export function EmitOnError<T extends Error>(messageName: string, errorType: (type?: any) => ObjectType<T>, options?: { classTransformOptions?: ClassTransformOptions }): Function {
+    return function (object: Object, methodName: string) {
+        const metadata: ResultMetadataArgs = {    
+            target: object.constructor,
+            method: methodName,
+            type: ResultTypes.EMIT_ON_ERROR,
+            value: messageName,
+            errorType: errorType,
+            classTransformOptions: options && options.classTransformOptions ? options.classTransformOptions : undefined
+        };
+        
+        defaultMetadataArgsStorage().results.push(metadata);
+    }
 }
 
 /**

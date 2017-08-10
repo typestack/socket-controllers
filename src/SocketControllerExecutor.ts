@@ -227,18 +227,29 @@ export class SocketControllerExecutor {
         }
     }
 
-    private handleFailResult(result: any, action: ActionMetadata, socket: any) {
-        if (result !== null && result !== undefined && action.emitOnFail) {
+    private handleFailResult(error: any, action: ActionMetadata, socket: any) {
+        if (error !== null && error !== undefined && (action.emitOnFail || action.emitOnError)) {
             const transformOptions = action.emitOnSuccess.classTransformOptions || this.classToPlainTransformOptions;
-            let transformedResult = this.useClassTransformer && result instanceof Object ? classToPlain(result, transformOptions) : result;
-            if (result instanceof Error && !Object.keys(transformedResult).length) {
-                transformedResult = result.toString();
+            let transformedResult = this.useClassTransformer && error instanceof Object ? classToPlain(error, transformOptions) : error;
+            
+            if (action.emitOnError && action.emitOnError.errorType && this.errorMatchesType(action.emitOnError.errorType, error)) {
+                socket.emit(action.emitOnError.value, transformedResult);
+            } else if (action.emitOnFail) {
+                if (error instanceof Error && !Object.keys(transformedResult).length) {
+                    transformedResult = error.toString();
+                }
+                socket.emit(action.emitOnFail.value, transformedResult);
             }
-            socket.emit(action.emitOnFail.value, transformedResult);
 
-        } else if ((result === null || result === undefined) && action.emitOnFail && !action.skipEmitOnEmptyResult) {
-            socket.emit(action.emitOnFail.value);
+        } else if ((error === null || error === undefined) && !action.skipEmitOnEmptyResult) {
+            if (action.emitOnFail)
+                socket.emit(action.emitOnFail.value);
+            else if (action.emitOnError)
+                socket.emit(action.emitOnError.value);
         }
     }
 
+    private errorMatchesType(expectedType: Function | string, actualType: any): boolean {
+        return actualType.constructor.name === (<any>expectedType).name;
+    }
 }
