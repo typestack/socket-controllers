@@ -269,6 +269,44 @@ export class MessageController {
 
 In this case `save_error` message will be sent to the client with `One is equal to one! Fatal error!` error message.
 
+Additionally, you can also control what message will be emitted for specific error conditions:
+
+```typescript
+import {SocketController, OnMessage, EmitOnSuccess, EmitOnFail, EmitOnFailFor} from "socket-controllers";
+
+@SocketController()
+export class MessageController {
+
+    @OnMessage("save")
+    @EmitOnSuccess("save_successfully")
+    @EmitOnFailFor("id_not_found", () => NotFoundException)
+    @EmitOnFail("save_error")
+    save(id: string) {
+        if (id <= 0) {
+            throw new NotFoundException("The provided id could not be found!");
+        } else {
+            throw new Error("Could not save id!");
+        }
+
+        return {
+            id: 1,
+            text: "new message"
+        };
+    }
+
+}
+
+export class NotFoundException {
+    constructor(message?: string);
+}
+```
+
+In this case `id_not_found` message will be sent to the client with `The provided id could not be found!` error message when the `NotFoundException` was thrown.
+Otherwise the client will receieve `save_error` with `Could not save id!` error message.
+
+Note: If you want to use `@EmitOnFailFor()` your thrown exceptions cannot inherit from the `Error` class, unless you use this [workaround](https://github.com/Microsoft/TypeScript/wiki/Breaking-Changes#extending-built-ins-like-error-array-and-map-may-no-longer-work). Not inheriting from the `Error` class will also let you
+differentiate between JavaScript runtime errors and your Application Exceptions. 
+
 Sometimes you may want to not emit success/error message if returned result is null or undefined.
 In such cases you can use `@SkipEmitOnEmptyResult()` decorator.
 
@@ -442,6 +480,7 @@ export class MessageController {
 | `@Middleware()`                                     | Registers a new middleware to be registered in the socket.io.                                                                                                                                                                                                               |
 | `@EmitOnSuccess(messageName: string)`               | If this decorator is set then after controller action will emit message with the given name after action execution. It will emit message only if controller succeed without errors. If result is a Promise then it will wait until promise is resolved and emit a message.  |
 | `@EmitOnFail(messageName: string)`                  | If this decorator is set then after controller action will emit message with the given name after action execution. It will emit message only if controller throw an exception. If result is a Promise then it will wait until promise throw an error and emit a message.   |
+| `@EmitOnFailFor(messageName: string, errorType: () => ObjectType)` |  If this decorator is set then after controller action will emit message with the given name after action execution. It will emit message only if controller throw an exception of the specified type. If result is a Promise then it will wait until promise throw an error and emit a message.   |
 | `@SkipEmitOnEmptyResult()`                          | Used in conjunction with @EmitOnSuccess and @EmitOnFail decorators. If result returned by controller action is null or undefined then messages will not be emitted by @EmitOnSuccess or @EmitOnFail decorators.                                                             |                                                                                                                                                                     |
 
 ## Samples
