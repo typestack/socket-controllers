@@ -240,12 +240,12 @@ export class SocketControllerExecutor {
                 }
                 socket.emit(action.emitOnFail.value, transformedResult);
             }
-
         } else if ((error === null || error === undefined) && !action.skipEmitOnEmptyResult) {
-            if (action.emitOnFail)
+            if (action.emitOnFail) {
                 socket.emit(action.emitOnFail.value);
-            else if (action.emitOnError)
+            } else if (action.emitOnError) {
                 socket.emit(action.emitOnError.value);
+            }
         }
     }
 

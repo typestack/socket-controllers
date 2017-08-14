@@ -238,7 +238,7 @@ export function EmitOnFail(messageName: string, options?: { classTransformOption
     };
 }
 
-export function EmitOnError<T extends Error>(messageName: string, errorType: (type?: any) => ObjectType<T>, options?: { classTransformOptions?: ClassTransformOptions }): Function {
+export function EmitOnFailFor<T extends Error>(messageName: string, errorType: (type?: any) => ObjectType<T>, options?: { classTransformOptions?: ClassTransformOptions }): Function {
     return function (object: Object, methodName: string) {
         const metadata: ResultMetadataArgs = {    
             target: object.constructor,
