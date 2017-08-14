@@ -79,8 +79,8 @@ export class ActionMetadata {
         return this.results.find(resultHandler => resultHandler.type === ResultTypes.EMIT_ON_FAIL);
     };
 
-    get emitOnError() {
-        return this.results.find(resultHandler => resultHandler.type === ResultTypes.EMIT_ON_ERROR);
+    get emitOnFailFor() {
+        return this.results.find(resultHandler => resultHandler.type === ResultTypes.EMIT_ON_FAIL_FOR);
     };
 
     get skipEmitOnEmptyResult() {

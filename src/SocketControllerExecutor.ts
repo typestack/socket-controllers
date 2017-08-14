@@ -228,12 +228,12 @@ export class SocketControllerExecutor {
     }
 
     private handleFailResult(error: any, action: ActionMetadata, socket: any) {
-        if (error !== null && error !== undefined && (action.emitOnFail || action.emitOnError)) {
+        if (error !== null && error !== undefined && (action.emitOnFail || action.emitOnFailFor)) {
             const transformOptions = action.emitOnSuccess.classTransformOptions || this.classToPlainTransformOptions;
             let transformedResult = this.useClassTransformer && error instanceof Object ? classToPlain(error, transformOptions) : error;
             
-            if (action.emitOnError && action.emitOnError.errorType && this.errorMatchesType(action.emitOnError.errorType, error)) {
-                socket.emit(action.emitOnError.value, transformedResult);
+            if (action.emitOnFailFor && action.emitOnFailFor.errorType && this.errorMatchesType(action.emitOnFailFor.errorType, error)) {
+                socket.emit(action.emitOnFailFor.value, transformedResult);
             } else if (action.emitOnFail) {
                 if (error instanceof Error && !Object.keys(transformedResult).length) {
                     transformedResult = error.toString();
@@ -243,8 +243,8 @@ export class SocketControllerExecutor {
         } else if ((error === null || error === undefined) && !action.skipEmitOnEmptyResult) {
             if (action.emitOnFail) {
                 socket.emit(action.emitOnFail.value);
-            } else if (action.emitOnError) {
-                socket.emit(action.emitOnError.value);
+            } else if (action.emitOnFailFor) {
+                socket.emit(action.emitOnFailFor.value);
             }
         }
     }

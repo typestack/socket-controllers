@@ -243,7 +243,7 @@ export function EmitOnFailFor<T extends Error>(messageName: string, errorType: (
         const metadata: ResultMetadataArgs = {    
             target: object.constructor,
             method: methodName,
-            type: ResultTypes.EMIT_ON_ERROR,
+            type: ResultTypes.EMIT_ON_FAIL_FOR,
             value: messageName,
             errorType: errorType,
             classTransformOptions: options && options.classTransformOptions ? options.classTransformOptions : undefined
