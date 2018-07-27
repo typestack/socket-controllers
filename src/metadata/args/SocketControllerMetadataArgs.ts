@@ -11,6 +11,6 @@ export interface SocketControllerMetadataArgs {
     /**
      * Extra namespace in which this controller's events will be registered.
      */
-    namespace?: string;
+    namespace?: string | RegExp | ((name: string, query: any, next: (err: any, valid: boolean) => void) => void);
     
 }

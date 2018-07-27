@@ -21,7 +21,7 @@ export class ControllerMetadata {
     /**
      * Base route for all actions registered in this controller.
      */
-    namespace: string;
+    namespace: string | RegExp | ((name: string, query: any, next: (err: any, valid: boolean) => void) => void);
 
     // -------------------------------------------------------------------------
     // Constructor
