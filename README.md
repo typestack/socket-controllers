@@ -84,7 +84,7 @@ Helps to organize your code using websockets in classes.
     createSocketServer(3001);
     ```
 
-3. Now you can send `save` websocket message using webosocket-client.
+3. Now you can send `save` websocket message using websocket-client.
 
 ## More usage examples
 
