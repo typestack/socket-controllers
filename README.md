@@ -1,14 +1,9 @@
 # socket-controllers
 
-[![Build Status](https://travis-ci.org/pleerock/socket-controllers.svg?branch=master)](https://travis-ci.org/pleerock/socket-controllers)
-[![codecov](https://codecov.io/gh/pleerock/socket-controllers/branch/master/graph/badge.svg)](https://codecov.io/gh/pleerock/socket-controllers)
+[![Build Status](https://travis-ci.com/typestack/socket-controllers.svg?branch=master)](https://travis-ci.com/typestack/socket-controllers)
 [![npm version](https://badge.fury.io/js/socket-controllers.svg)](https://badge.fury.io/js/socket-controllers)
-[![Dependency Status](https://david-dm.org/pleerock/socket-controllers.svg)](https://david-dm.org/pleerock/socket-controllers)
-[![devDependency Status](https://david-dm.org/pleerock/socket-controllers/dev-status.svg)](https://david-dm.org/pleerock/socket-controllers#info=devDependencies)
-[![Join the chat at https://gitter.im/pleerock/socket-controllers](https://badges.gitter.im/pleerock/socket-controllers.svg)](https://gitter.im/pleerock/socket-controllers?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-Use class-based controllers to handle websocket events. 
-Helps to organize your code using websockets in classes.
+Use class-based controllers to handle websocket events. Helps to organize your code using websockets in classes.
 
 ## Installation
 
