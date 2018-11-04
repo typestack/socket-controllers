@@ -5,6 +5,15 @@
   "description": "Use class-based controllers to handle websocket events",
   "license": "MIT",
   "readmeFilename": "README.md",
+  "main": "index.js",
+  "tags": [
+    "websocket",
+    "websockets",
+    "typescript",
+    "typescript-websocket",
+    "typescript-websockets",
+    "socket-controllers"
+  ],
   "author": {
     "name": "Umed Khudoiberdiev",
     "email": "pleerock.me@gmail.com"
@@ -16,15 +25,10 @@
   "bugs": {
     "url": "https://github.com/pleerock/socket-controllers/issues"
   },
-  "main": "index.js",
-  "tags": [
-    "websocket",
-    "websockets",
-    "typescript",
-    "typescript-websocket",
-    "typescript-websockets",
-    "socket-controllers"
-  ],
+  "scripts": {
+    "test": "gulp package",
+    "build": "gulp package"
+  },
   "dependencies": {
     "class-transformer": "^0.1.6",
     "reflect-metadata": "^0.1.10",
@@ -47,8 +51,5 @@
     "tslint-stylish": "^2.1.0",
     "typedi": "^0.5.2",
     "typescript": "^2.3.2"
-  },
-  "scripts": {
-    "build": "gulp package"
   }
 }
