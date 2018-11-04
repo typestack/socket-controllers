@@ -4,15 +4,10 @@ const gulp = require("gulp");
 const del = require("del");
 const shell = require("gulp-shell");
 const replace = require("gulp-replace");
-const mocha = require("gulp-mocha");
-const chai = require("chai");
 const tslint = require("gulp-tslint");
 const stylish = require("tslint-stylish");
 const ts = require("gulp-typescript");
 const sourcemaps = require("gulp-sourcemaps");
-const istanbul = require("gulp-istanbul");
-const remapIstanbul = require("remap-istanbul/lib/gulpRemapIstanbul");
-
 @Gulpclass()
 export class Gulpfile {
 
@@ -118,6 +113,7 @@ export class Gulpfile {
     @SequenceTask()
     package() {
         return [
+            "tslint",
             "clean",
             "packageCompile",
             "packageMoveCompiledFiles",
@@ -152,42 +148,4 @@ export class Gulpfile {
             }));
     }
 
-    /**
-     * Runs before test coverage, required step to perform a test coverage.
-     */
-    @Task()
-    coveragePre() {
-        return gulp.src(["./build/compiled/src/**/*.js"])
-            .pipe(istanbul())
-            .pipe(istanbul.hookRequire());
-    }
-
-    /**
-     * Runs post coverage operations.
-     */
-    @Task("coveragePost", ["coveragePre"])
-    coveragePost() {
-        chai.should();
-        chai.use(require("sinon-chai"));
-        chai.use(require("chai-as-promised"));
-
-        return gulp.src(["./build/compiled/test/functional/**/*.js"])
-            .pipe(mocha())
-            .pipe(istanbul.writeReports());
-    }
-
-    @Task()
-    coverageRemap() {
-        return gulp.src("./coverage/coverage-final.json")
-            .pipe(remapIstanbul())
-            .pipe(gulp.dest("./coverage"));
-    }
-
-    /**
-     * Compiles the code and runs tests.
-     */
-    @SequenceTask()
-    tests() {
-        return ["compile", "coveragePost", "coverageRemap", "tslint"];
-    }
 }
