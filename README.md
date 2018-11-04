@@ -7,36 +7,24 @@ Use class-based controllers to handle websocket events. Helps to organize your c
 
 ## Installation
 
-1. Install module:
+1. Install `socket-controllers`:
 
-    `npm install socket-controllers --save`
+    ```
+    npm install socket-controllers
+    ```
 
-2. `reflect-metadata` shim is required:
+2. Install `reflect-metadata` shim:
 
-    `npm install reflect-metadata --save`
+    ```
+    npm install reflect-metadata
+    ```
 
     and make sure to import it in a global place, like app.ts:
 
     ```typescript
     import "reflect-metadata";
     ```
-
-3. ES6 features are used, if you are using old version of node.js you may need to install
- [es6-shim](https://github.com/paulmillr/es6-shim):
-
-    `npm install es6-shim --save`
-
-    and import it in a global place like app.ts:
-
-    ```typescript
-    import "es6-shim";
-    ```
-
-4. Optionally you can install socket.io [typings](https://github.com/typings/typings):
-
-    `typings install dt~socket.io --save --global`
-
-
+    
 ## Example of usage
 
 1. Create a file `MessageController.ts`
