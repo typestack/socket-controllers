@@ -1,3 +1,51 @@
-build/
-node_modules/
-npm-debug.log
+# Logs
+logs
+*.log
+*.tmp
+*.tmp.*
+log.txt
+npm-debug.log*
+
+# Testing
+lib-cov
+coverage
+
+# Environment files
+.env
+
+# Dependency directories
+node_modules
+
+# MacOS related files
+*.DS_Store
+.AppleDouble
+.LSOverride
+._*
+UserInterfaceState.xcuserstate
+
+# Windows related files
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Editors
+.idea
+.vscode
+*.sublime-project
+*.sublime-workspace
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+
+# IDE - VSCode
+.vscode/*
+!.vscode/tasks.json
+!.vscode/launch.json
+
+# compiled output
+dist
+build
+tmp
+out-tsc
