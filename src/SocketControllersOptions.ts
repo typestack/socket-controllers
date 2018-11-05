@@ -11,6 +11,11 @@ export interface SocketControllersOptions {
     controllers?: string[];
 
     /**
+     * List of directories from where to "require" all your middlewares.
+     */
+    middlewares?: string[];
+
+    /**
      * Indicates if class-transformer package should be used to perform message body serialization / deserialization.
      * By default its enabled.
      */

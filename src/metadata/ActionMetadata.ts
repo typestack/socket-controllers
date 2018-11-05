@@ -73,14 +73,14 @@ export class ActionMetadata {
 
     get emitOnSuccess() {
         return this.results.find(resultHandler => resultHandler.type === ResultTypes.EMIT_ON_SUCCESS);
-    };
+    }
 
     get emitOnFail() {
         return this.results.find(resultHandler => resultHandler.type === ResultTypes.EMIT_ON_FAIL);
-    };
+    }
 
     get skipEmitOnEmptyResult() {
         return this.results.find(resultHandler => resultHandler.type === ResultTypes.SKIP_EMIT_ON_EMPTY_RESULT);
-    };
+    }
 
 }

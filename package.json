@@ -1,10 +1,19 @@
 {
   "name": "socket-controllers",
   "private": true,
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Use class-based controllers to handle websocket events",
   "license": "MIT",
   "readmeFilename": "README.md",
+  "main": "index.js",
+  "tags": [
+    "websocket",
+    "websockets",
+    "typescript",
+    "typescript-websocket",
+    "typescript-websockets",
+    "socket-controllers"
+  ],
   "author": {
     "name": "Umed Khudoiberdiev",
     "email": "pleerock.me@gmail.com"
@@ -16,53 +25,31 @@
   "bugs": {
     "url": "https://github.com/pleerock/socket-controllers/issues"
   },
-  "main": "index.js",
-  "tags": [
-    "websocket",
-    "websockets",
-    "typescript",
-    "typescript-websocket",
-    "typescript-websockets",
-    "socket-controllers"
-  ],
+  "scripts": {
+    "test": "gulp package",
+    "build": "gulp package"
+  },
   "dependencies": {
     "class-transformer": "^0.1.6",
     "reflect-metadata": "^0.1.10",
     "socket.io": "^2.0.1"
   },
   "devDependencies": {
-    "@types/chai": "^3.5.2",
-    "@types/mocha": "^2.2.41",
     "@types/node": "^7.0.18",
-    "@types/sinon": "^2.2.1",
-    "chai": "^3.4.1",
-    "chai-as-promised": "^6.0.0",
-    "chakram": "^1.5.0",
     "del": "^2.2.2",
     "express": "^4.15.2",
     "gulp": "^3.9.1",
-    "gulp-istanbul": "^1.1.1",
-    "gulp-mocha": "^4.3.1",
     "gulp-replace": "^0.5.4",
     "gulp-shell": "^0.6.3",
     "gulp-sourcemaps": "^2.6.0",
     "gulp-tslint": "^8.0.0",
     "gulp-typescript": "^3.1.6",
-    "gulpclass": "^0.2.0",
-    "mocha": "^3.3.0",
-    "multer": "^1.3.0",
-    "remap-istanbul": "^0.9.5",
-    "request": "^2.81.0",
-    "sinon": "^2.2.0",
-    "sinon-chai": "^2.10.0",
+    "gulpclass": "^0.1.2",
     "socket.io-client": "^2.0.1",
     "ts-node": "^3.0.4",
     "tslint": "^5.2.0",
     "tslint-stylish": "^2.1.0",
     "typedi": "^0.5.2",
     "typescript": "^2.3.2"
-  },
-  "scripts": {
-    "test": "gulp tests"
   }
 }

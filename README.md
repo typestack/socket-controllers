@@ -1,47 +1,30 @@
 # socket-controllers
 
-[![Build Status](https://travis-ci.org/pleerock/socket-controllers.svg?branch=master)](https://travis-ci.org/pleerock/socket-controllers)
-[![codecov](https://codecov.io/gh/pleerock/socket-controllers/branch/master/graph/badge.svg)](https://codecov.io/gh/pleerock/socket-controllers)
+[![Build Status](https://travis-ci.com/typestack/socket-controllers.svg?branch=master)](https://travis-ci.com/typestack/socket-controllers)
 [![npm version](https://badge.fury.io/js/socket-controllers.svg)](https://badge.fury.io/js/socket-controllers)
-[![Dependency Status](https://david-dm.org/pleerock/socket-controllers.svg)](https://david-dm.org/pleerock/socket-controllers)
-[![devDependency Status](https://david-dm.org/pleerock/socket-controllers/dev-status.svg)](https://david-dm.org/pleerock/socket-controllers#info=devDependencies)
-[![Join the chat at https://gitter.im/pleerock/socket-controllers](https://badges.gitter.im/pleerock/socket-controllers.svg)](https://gitter.im/pleerock/socket-controllers?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-Use class-based controllers to handle websocket events. 
-Helps to organize your code using websockets in classes.
+Use class-based controllers to handle websocket events. Helps to organize your code using websockets in classes.
 
 ## Installation
 
-1. Install module:
+1. Install `socket-controllers`:
 
-    `npm install socket-controllers --save`
+    ```
+    npm install socket-controllers
+    ```
 
-2. `reflect-metadata` shim is required:
+2. Install `reflect-metadata` shim:
 
-    `npm install reflect-metadata --save`
+    ```
+    npm install reflect-metadata
+    ```
 
     and make sure to import it in a global place, like app.ts:
 
     ```typescript
     import "reflect-metadata";
     ```
-
-3. ES6 features are used, if you are using old version of node.js you may need to install
- [es6-shim](https://github.com/paulmillr/es6-shim):
-
-    `npm install es6-shim --save`
-
-    and import it in a global place like app.ts:
-
-    ```typescript
-    import "es6-shim";
-    ```
-
-4. Optionally you can install socket.io [typings](https://github.com/typings/typings):
-
-    `typings install dt~socket.io --save --global`
-
-
+    
 ## Example of usage
 
 1. Create a file `MessageController.ts`
@@ -84,7 +67,7 @@ Helps to organize your code using websockets in classes.
     createSocketServer(3001);
     ```
 
-3. Now you can send `save` websocket message using webosocket-client.
+3. Now you can send `save` websocket message using websocket-client.
 
 ## More usage examples
 
