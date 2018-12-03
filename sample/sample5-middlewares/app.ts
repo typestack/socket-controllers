@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import {createSocketServer} from "../../src/index";
-import "./AuthenitificationMiddleware";
+import "./AuthenticationMiddleware";
 import "./MessageController";
 
 // import all required files
