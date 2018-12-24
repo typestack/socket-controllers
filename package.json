@@ -28,6 +28,7 @@
   "scripts": {
     "test": "gulp package",
     "build": "gulp package",
+    "prepare": "npm install",
     "postinstall": "gulp package"
   },
   "dependencies": {
