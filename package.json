@@ -5,7 +5,7 @@
   "description": "Use class-based controllers to handle websocket events",
   "license": "MIT",
   "readmeFilename": "README.md",
-  "main": "index.js",
+  "main": "build/package/index.js",
   "tags": [
     "websocket",
     "websockets",
@@ -27,7 +27,8 @@
   },
   "scripts": {
     "test": "gulp package",
-    "build": "gulp package"
+    "build": "gulp package",
+    "install": "npm run build"
   },
   "dependencies": {
     "class-transformer": "^0.1.6",
