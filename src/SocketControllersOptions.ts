@@ -8,7 +8,7 @@ export interface SocketControllersOptions {
     /**
      * List of directories from where to "require" all your controllers.
      */
-    controllers?: string[];
+    controllers?: Function[] | string[];
 
     /**
      * List of directories from where to "require" all your middlewares.

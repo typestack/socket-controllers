@@ -52,9 +52,9 @@ export class SocketControllerExecutor {
     // Public Methods
     // -------------------------------------------------------------------------
 
-    execute() {
-        this.registerControllers();
-        this.registerMiddlewares();
+    execute(controllerClasses?: Function[], middlewareClasses?: Function[]) {
+        this.registerControllers(controllerClasses);
+        this.registerMiddlewares(middlewareClasses);
     }
 
     // -------------------------------------------------------------------------
