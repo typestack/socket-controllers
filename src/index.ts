@@ -54,7 +54,7 @@ function createExecutor(io: any, options: SocketControllersOptions): void {
     executor.plainToClassTransformOptions = options.plainToClassTransformOptions;
 
     // run socket controller register and other operations
-    executor.execute();
+    executor.execute(controllerClasses, middlewareClasses);
 }
 
 // -------------------------------------------------------------------------
