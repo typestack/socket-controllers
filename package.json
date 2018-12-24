@@ -1,11 +1,11 @@
 {
   "name": "socket-controllers",
-  "private": true,
+  "private": false,
   "version": "0.0.5",
   "description": "Use class-based controllers to handle websocket events",
   "license": "MIT",
   "readmeFilename": "README.md",
-  "main": "build/package/index.js",
+  "main": "index.js",
   "tags": [
     "websocket",
     "websockets",
