@@ -28,7 +28,7 @@
   "scripts": {
     "test": "gulp package",
     "build": "gulp package",
-    "prepare": "gulp package"
+    "postinstall": "npm i && npm run build"
   },
   "dependencies": {
     "class-transformer": "^0.1.6",
