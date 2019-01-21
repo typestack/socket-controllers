@@ -1,7 +1,9 @@
 /**
  * Controller action type.
  */
-export type ActionType = "message"|"connection"|"disconnection";
+export type ActionType = "message"
+    | "connection"
+    | "disconnection";
 
 /**
  * Static access to action types.
