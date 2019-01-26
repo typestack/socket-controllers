@@ -21,12 +21,12 @@ export class ControllerMetadata {
     /**
      * Base route for all actions registered in this controller.
      */
-    namespace: string;
+    namespace: string | RegExp;
 
     // -------------------------------------------------------------------------
     // Constructor
     // -------------------------------------------------------------------------
-    
+
     constructor(args: SocketControllerMetadataArgs) {
         this.target = args.target;
         this.namespace = args.namespace;
@@ -39,5 +39,5 @@ export class ControllerMetadata {
     get instance(): any {
         return getFromContainer(this.target);
     }
-    
+
 }

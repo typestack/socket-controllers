@@ -14,7 +14,7 @@ import {ResultTypes} from "./metadata/types/ResultTypes";
  *
  * @param namespace Namespace in which this controller's events will be registered.
  */
-export function SocketController(namespace?: string) {
+export function SocketController(namespace?: string|RegExp) {
     return function (object: Function) {
         const metadata: SocketControllerMetadataArgs = {
             namespace: namespace,
