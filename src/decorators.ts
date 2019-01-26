@@ -172,6 +172,41 @@ export function SocketRequest() {
 }
 
 /**
+ * Injects parameters of the connected socket namespace.
+ */
+export function NspParams() {
+    return function (object: Object, methodName: string, index: number) {
+        let format = (Reflect as any).getMetadata("design:paramtypes", object, methodName)[index];
+        const metadata: ParamMetadataArgs = {
+            target: object.constructor,
+            method: methodName,
+            index: index,
+            type: ParamTypes.NAMESPACE_PARAMS,
+            reflectedType: format
+        };
+        defaultMetadataArgsStorage().params.push(metadata);
+    };
+}
+
+/**
+ * Injects named param from the connected socket namespace.
+ */
+export function NspParam(name: string) {
+    return function (object: Object, methodName: string, index: number) {
+        let format = (Reflect as any).getMetadata("design:paramtypes", object, methodName)[index];
+        const metadata: ParamMetadataArgs = {
+            target: object.constructor,
+            method: methodName,
+            index: index,
+            type: ParamTypes.NAMESPACE_PARAM,
+            reflectedType: format,
+            value: name
+        };
+        defaultMetadataArgsStorage().params.push(metadata);
+    };
+}
+
+/**
  * Injects rooms of the connected socket client.
  */
 export function SocketRooms() {
