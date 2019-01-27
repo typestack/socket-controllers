@@ -62,9 +62,11 @@ Use class-based controllers to handle websocket events. Helps to organize your c
     import "es6-shim"; // this shim is optional if you are using old version of node
     import "reflect-metadata"; // this shim is required
     import {createSocketServer} from "socket-controllers";
-    import "./MessageController";  // we need to "load" our controller before call createSocketServer. this is required
+    import {MessageController} from "./MessageController";
      
-    createSocketServer(3001);
+    createSocketServer(3001, {
+        controllers: [MessageController]
+    });
     ```
 
 3. Now you can send `save` websocket message using websocket-client.
@@ -310,7 +312,7 @@ You can load all controllers in once from specific directories, by specifying ar
 
 ```typescript
 import "reflect-metadata"; // this shim is required
-import {createSocketServer, loadControllers} from "socket-controllers";
+import {createSocketServer} from "socket-controllers";
 
 createSocketServer(3000, {
     controllers: [__dirname + "/controllers/*.js"]
@@ -323,6 +325,15 @@ To listen to messages only of the specific namespace you can mark a controller w
 
 ```typescript
 @SocketController("/messages")
+export class MessageController {
+    // ...
+}
+```
+
+Also you can use dynamic namespace, like `express router` patterns:
+
+```typescript
+@SocketController("/messages/:userId")
 export class MessageController {
     // ...
 }
@@ -350,24 +361,27 @@ export class CompressionMiddleware implements MiddlewareInterface {
 
 ## Don't forget to load your controllers and middlewares
 
-Controllers and middlewares should be loaded globally, before app bootstrap:
+Controllers and middlewares should be loaded:
 
 ```typescript
 import "reflect-metadata";
 import {createSocketServer} from "socket-controllers";
-import "./MessageController";
-import "./MyMiddleware"; // here we load it
-let io = createSocketServer(3000);
+import {MessageController} from "./MessageController";
+import {MyMiddleware} from "./MyMiddleware"; // here we import it
+let io = createSocketServer(3000, {
+    controllers: [MessageController],
+    middlewares: [MyMiddleware]
+});
 ```
 
 Also you can load them from directories. Also you can use glob patterns:
 
 ```typescript
 import "reflect-metadata";
-import {createSocketServer, loadControllers} from "socket-controllers";
+import {createSocketServer} from "socket-controllers";
 let io = createSocketServer(3000, {
     controllers: [__dirname + "/controllers/**/*.js"],
-    middlewareDirs: [__dirname + "/middlewares/**/*.js"]
+    middlewares: [__dirname + "/middlewares/**/*.js"]
 });
 ```
 
@@ -389,7 +403,7 @@ useContainer(Container);
 // create and run socket server
 let io = createSocketServer(3000, {
     controllers: [__dirname + "/controllers/*.js"],
-    middlewareDirs: [__dirname + "/middlewares/*.js"]
+    middlewares: [__dirname + "/middlewares/*.js"]
 });
 ```
 
@@ -411,7 +425,7 @@ export class MessageController {
 
 | Signature                                           | Description                                                                                                                                                                                                                                                                 |
 |-----------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `@SocketController(namespace?: string)`             | Registers a class to be a socket controller that can listen to websocket events and respond to them.                                                                                                                                                                        |
+| `@SocketController(namespace?: string|Regex)`       | Registers a class to be a socket controller that can listen to websocket events and respond to them.                                                                                                                                                                      |
 | `@OnMessage(messageName: string)`                   | Registers controller's action to be executed when socket receives message with given name.                                                                                                                                                                                  |
 | `@OnConnect()`                                      | Registers controller's action to be executed when client connects to the socket.                                                                                                                                                                                            |
 | `@OnDisconnect()`                                   | Registers controller's action to be executed when client disconnects from the socket.                                                                                                                                                                                       |
@@ -421,7 +435,7 @@ export class MessageController {
 | `@SocketQueryParam(paramName: string)`              | Injects query parameter from the received socket request.                                                                                                                                                                                                                   |
 | `@SocketId()`                                       | Injects socket id from the received request.                                                                                                                                                                                                                                |
 | `@SocketRequest()`                                  | Injects request object received by socket.                                                                                                                                                                                                                                  |
-| `@SocketRooms()`                                    | Injects rooms of the connected socket client.                                                                                                                                                                                                                               |
+| `@SocketRooms()`                                    | Injects rooms of the connected socket client.                                                                                                                                                                                                                               |                                                                                                                             | `@NspParams()`                                      | Injects dynamic namespace params.                                                                                                                                                                                                                                           |                                                                                                                             | `@NspParam(paramName: string)`                      | Injects param from the dynamic namespace.                                                                                                                                                                                                                                   |
 | `@Middleware()`                                     | Registers a new middleware to be registered in the socket.io.                                                                                                                                                                                                               |
 | `@EmitOnSuccess(messageName: string)`               | If this decorator is set then after controller action will emit message with the given name after action execution. It will emit message only if controller succeed without errors. If result is a Promise then it will wait until promise is resolved and emit a message.  |
 | `@EmitOnFail(messageName: string)`                  | If this decorator is set then after controller action will emit message with the given name after action execution. It will emit message only if controller throw an exception. If result is a Promise then it will wait until promise throw an error and emit a message.   |
