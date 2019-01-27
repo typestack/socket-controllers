@@ -6,6 +6,7 @@ import {ParamMetadata} from "./metadata/ParamMetadata";
 import {ParameterParseJsonError} from "./error/ParameterParseJsonError";
 import {ParamTypes} from "./metadata/types/ParamTypes";
 import {ControllerMetadata} from "./metadata/ControllerMetadata";
+import * as pathToRegexp from "path-to-regexp";
 
 /**
  * Registers controllers and actions in the given server framework.
@@ -91,7 +92,11 @@ export class SocketControllerExecutor {
 
         // register controllers with namespaces
         controllersWithNamespaces.forEach(controller => {
-            this.io.of(controller.namespace).on("connection", (socket: any) => this.handleConnection([controller], socket));
+            let namespace: string | RegExp = controller.namespace;
+            if (!(namespace instanceof RegExp)) {
+                namespace = pathToRegexp(namespace);
+            }
+            this.io.of(namespace).on("connection", (socket: any) => this.handleConnection([controller], socket));
         });
 
         return this;
@@ -101,20 +106,20 @@ export class SocketControllerExecutor {
         controllers.forEach(controller => {
             controller.actions.forEach(action => {
                 if (action.type === ActionTypes.CONNECT) {
-                    this.handleAction(action, { socket: socket })
+                    this.handleAction(action, {socket: socket})
                         .then(result => this.handleSuccessResult(result, action, socket))
                         .catch(error => this.handleFailResult(error, action, socket));
 
                 } else if (action.type === ActionTypes.DISCONNECT) {
                     socket.on("disconnect", () => {
-                        this.handleAction(action, { socket: socket })
+                        this.handleAction(action, {socket: socket})
                             .then(result => this.handleSuccessResult(result, action, socket))
                             .catch(error => this.handleFailResult(error, action, socket));
                     });
 
                 } else if (action.type === ActionTypes.MESSAGE) {
                     socket.on(action.name, (data: any) => {
-                        this.handleAction(action, { socket: socket, data: data })
+                        this.handleAction(action, {socket: socket, data: data})
                             .then(result => this.handleSuccessResult(result, action, socket))
                             .catch(error => this.handleFailResult(error, action, socket));
                     });
@@ -123,8 +128,8 @@ export class SocketControllerExecutor {
         });
     }
 
-    private handleAction(action: ActionMetadata, options: { socket?: any, data?: any }): Promise<any> {
-        
+    private handleAction(action: ActionMetadata, options: {socket?: any, data?: any}): Promise<any> {
+
         // compute all parameters
         const paramsPromises = action.params
             .sort((param1, param2) => param1.index - param2.index)
@@ -147,6 +152,13 @@ export class SocketControllerExecutor {
                 } else if (param.type === ParamTypes.SOCKET_ROOMS) {
                     return options.socket.rooms;
 
+                } else if (param.type === ParamTypes.NAMESPACE_PARAMS) {
+                    return this.handleNamespaceParams(options.socket, action, param);
+
+                } else if (param.type === ParamTypes.NAMESPACE_PARAM) {
+                    const params: any[] = this.handleNamespaceParams(options.socket, action, param);
+                    return params[param.value];
+
                 } else {
                     return this.handleParam(param, options);
                 }
@@ -162,7 +174,7 @@ export class SocketControllerExecutor {
         });
     }
 
-    private handleParam(param: ParamMetadata, options: { socket?: any, data?: any }) {
+    private handleParam(param: ParamMetadata, options: {socket?: any, data?: any}) {
 
         let value = options.data;
         if (value !== null && value !== undefined && value !== "")
@@ -239,6 +251,17 @@ export class SocketControllerExecutor {
         } else if ((result === null || result === undefined) && action.emitOnFail && !action.skipEmitOnEmptyResult) {
             socket.emit(action.emitOnFail.value);
         }
+    }
+
+    private handleNamespaceParams(socket: any, action: ActionMetadata, param: ParamMetadata): any[] {
+        const keys: any[] = [];
+        const regexp = pathToRegexp(action.controllerMetadata.namespace, keys);
+        const parts: any[] = regexp.exec(socket.nsp.name);
+        const params: any[] = [];
+        keys.forEach((key: any, index: number) => {
+            params[key.name] = this.handleParamFormat(parts[index + 1], param);
+        });
+        return params;
     }
 
 }

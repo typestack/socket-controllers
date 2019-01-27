@@ -14,7 +14,7 @@ import {ResultTypes} from "./metadata/types/ResultTypes";
  *
  * @param namespace Namespace in which this controller's events will be registered.
  */
-export function SocketController(namespace?: string) {
+export function SocketController(namespace?: string | RegExp) {
     return function (object: Function) {
         const metadata: SocketControllerMetadataArgs = {
             namespace: namespace,
@@ -104,7 +104,7 @@ export function SocketIO() {
 /**
  * Injects received message body.
  */
-export function MessageBody(options?: { classTransformOptions?: ClassTransformOptions }) {
+export function MessageBody(options?: {classTransformOptions?: ClassTransformOptions}) {
     return function (object: Object, methodName: string, index: number) {
         let format = (Reflect as any).getMetadata("design:paramtypes", object, methodName)[index];
         const metadata: ParamMetadataArgs = {
@@ -172,6 +172,41 @@ export function SocketRequest() {
 }
 
 /**
+ * Injects parameters of the connected socket namespace.
+ */
+export function NspParams() {
+    return function (object: Object, methodName: string, index: number) {
+        let format = (Reflect as any).getMetadata("design:paramtypes", object, methodName)[index];
+        const metadata: ParamMetadataArgs = {
+            target: object.constructor,
+            method: methodName,
+            index: index,
+            type: ParamTypes.NAMESPACE_PARAMS,
+            reflectedType: format
+        };
+        defaultMetadataArgsStorage().params.push(metadata);
+    };
+}
+
+/**
+ * Injects named param from the connected socket namespace.
+ */
+export function NspParam(name: string) {
+    return function (object: Object, methodName: string, index: number) {
+        let format = (Reflect as any).getMetadata("design:paramtypes", object, methodName)[index];
+        const metadata: ParamMetadataArgs = {
+            target: object.constructor,
+            method: methodName,
+            index: index,
+            type: ParamTypes.NAMESPACE_PARAM,
+            reflectedType: format,
+            value: name
+        };
+        defaultMetadataArgsStorage().params.push(metadata);
+    };
+}
+
+/**
  * Injects rooms of the connected socket client.
  */
 export function SocketRooms() {
@@ -191,7 +226,7 @@ export function SocketRooms() {
 /**
  * Registers a new middleware to be registered in the socket.io.
  */
-export function Middleware(options?: { priority?: number }): Function {
+export function Middleware(options?: {priority?: number}): Function {
     return function (object: Function) {
         const metadata: MiddlewareMetadataArgs = {
             target: object,
@@ -206,7 +241,7 @@ export function Middleware(options?: { priority?: number }): Function {
  * It will emit message only if controller succeed without errors.
  * If result is a Promise then it will wait until promise is resolved and emit a message.
  */
-export function EmitOnSuccess(messageName: string, options?: { classTransformOptions?: ClassTransformOptions }): Function {
+export function EmitOnSuccess(messageName: string, options?: {classTransformOptions?: ClassTransformOptions}): Function {
     return function (object: Object, methodName: string) {
         const metadata: ResultMetadataArgs = {
             target: object.constructor,
@@ -224,7 +259,7 @@ export function EmitOnSuccess(messageName: string, options?: { classTransformOpt
  * It will emit message only if controller throw an exception.
  * If result is a Promise then it will wait until promise throw an error and emit a message.
  */
-export function EmitOnFail(messageName: string, options?: { classTransformOptions?: ClassTransformOptions }): Function {
+export function EmitOnFail(messageName: string, options?: {classTransformOptions?: ClassTransformOptions}): Function {
     return function (object: Object, methodName: string) {
         const metadata: ResultMetadataArgs = {
             target: object.constructor,
