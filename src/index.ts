@@ -31,11 +31,18 @@ function createExecutor(io: any, options: SocketControllersOptions): void {
     const executor = new SocketControllerExecutor(io);
 
     // second import all controllers and middlewares and error handlers
+    let controllerClasses: Function[];
     if (options && options.controllers && options.controllers.length)
-        importClassesFromDirectories(options.controllers);
+        controllerClasses = (options.controllers as any[]).filter(controller => controller instanceof Function);
+        const controllerDirs = (options.controllers as any[]).filter(controller => typeof controller === "string");
+        controllerClasses.push(...importClassesFromDirectories(controllerDirs));
 
-    if (options && options.middlewares && options.middlewares.length)
-        importClassesFromDirectories(options.middlewares);
+    let middlewareClasses: Function[];
+    if (options && options.middlewares && options.middlewares.length) {
+        middlewareClasses = (options.middlewares as any[]).filter(controller => controller instanceof Function);
+        const middlewareDirs = (options.middlewares as any[]).filter(controller => typeof controller === "string");
+        middlewareClasses.push(...importClassesFromDirectories(middlewareDirs));
+    }
 
     if (options.useClassTransformer !== undefined) {
         executor.useClassTransformer = options.useClassTransformer;
@@ -47,7 +54,7 @@ function createExecutor(io: any, options: SocketControllersOptions): void {
     executor.plainToClassTransformOptions = options.plainToClassTransformOptions;
 
     // run socket controller register and other operations
-    executor.execute();
+    executor.execute(controllerClasses, middlewareClasses);
 }
 
 // -------------------------------------------------------------------------
