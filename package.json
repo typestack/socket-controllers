@@ -6,18 +6,26 @@
   "license": "MIT",
   "readmeFilename": "README.md",
   "main": "index.js",
-  "tags": [
+  "keywords": [
     "websocket",
     "websockets",
     "typescript",
     "typescript-websocket",
     "typescript-websockets",
-    "socket-controllers"
+    "socket-controllers",
+    "socket.io",
+    "socket-server"
   ],
   "author": {
     "name": "Umed Khudoiberdiev",
     "email": "pleerock.me@gmail.com"
   },
+  "contributors": [
+    {
+      "name": "Rustam Mamadaminov",
+      "email": "rmamdaminov@gmail.com"
+    }
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/pleerock/socket-controllers.git"

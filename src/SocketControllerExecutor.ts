@@ -1,6 +1,6 @@
 import {MetadataBuilder} from "./metadata-builder/MetadataBuilder";
 import {ActionMetadata} from "./metadata/ActionMetadata";
-import {ClassTransformOptions, plainToClass, classToPlain} from "class-transformer";
+import {classToPlain, ClassTransformOptions, plainToClass} from "class-transformer";
 import {ActionTypes} from "./metadata/types/ActionTypes";
 import {ParamMetadata} from "./metadata/ParamMetadata";
 import {ParameterParseJsonError} from "./error/ParameterParseJsonError";
@@ -118,7 +118,7 @@ export class SocketControllerExecutor {
                     });
 
                 } else if (action.type === ActionTypes.MESSAGE) {
-                    socket.on(action.name, (data: any) => {
+                    socket.on(action.name, (data: any[]) => { // todo get multiple args
                         this.handleAction(action, {socket: socket, data: data})
                             .then(result => this.handleSuccessResult(result, action, socket))
                             .catch(error => this.handleFailResult(error, action, socket));
