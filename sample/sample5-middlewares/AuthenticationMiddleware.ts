@@ -1,4 +1,4 @@
-import {Middleware} from "../../src/decorators";
+import {Middleware} from "../../src/index";
 import {MiddlewareInterface} from "../../src/MiddlewareInterface";
 
 @Middleware()

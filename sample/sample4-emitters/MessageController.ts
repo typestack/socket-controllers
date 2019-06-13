@@ -8,7 +8,7 @@ import {
     EmitOnSuccess,
     EmitOnFail,
     SkipEmitOnEmptyResult
-} from "../../src/decorators";
+} from "../../src/index";
 import {Message} from "./Message";
 
 @SocketController()

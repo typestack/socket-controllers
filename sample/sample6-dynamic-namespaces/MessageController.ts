@@ -6,7 +6,7 @@ import {
     MessageBody,
     OnMessage,
     NspParams
-} from "../../src/decorators";
+} from "../../src/index";
 import {Message} from "./Message";
 
 @SocketController("/messages/:id")
