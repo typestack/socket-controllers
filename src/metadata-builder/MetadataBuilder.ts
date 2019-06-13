@@ -4,6 +4,7 @@ import {ActionMetadata} from "../metadata/ActionMetadata";
 import {ParamMetadata} from "../metadata/ParamMetadata";
 import {MiddlewareMetadata} from "../metadata/MiddlewareMetadata";
 import {ResultMetadata} from "../metadata/ResultMetadata";
+import {UseMetadata} from "../metadata/UseMetadata";
 
 /**
  * Builds metadata from the given metadata arguments.
@@ -25,7 +26,7 @@ export class MetadataBuilder {
     // -------------------------------------------------------------------------
     // Public Methods
     // -------------------------------------------------------------------------
-    
+
     private createMiddlewares(classes?: Function[]): MiddlewareMetadata[] {
         const storage = defaultMetadataArgsStorage();
         const middlewares = !classes ? storage.middlewares : storage.findMiddlewareMetadatasForClasses(classes);
@@ -40,10 +41,11 @@ export class MetadataBuilder {
         return controllers.map(controllerArgs => {
             const controller = new ControllerMetadata(controllerArgs);
             controller.actions = this.createActions(controller);
+            controller.uses = this.createControllerUses(controller);
             return controller;
         });
     }
-    
+
     private createActions(controller: ControllerMetadata): ActionMetadata[] {
         return defaultMetadataArgsStorage()
             .findActionsWithTarget(controller.target)
@@ -54,7 +56,16 @@ export class MetadataBuilder {
                 return action;
             });
     }
-    
+
+    /**
+     * Creates use metadatas for controllers.
+     */
+    protected createControllerUses(controller: ControllerMetadata): UseMetadata[] {
+        return defaultMetadataArgsStorage()
+            .filterUsesWithTarget(controller.target)
+            .map(useArgs => new UseMetadata(useArgs));
+    }
+
     private createParams(action: ActionMetadata): ParamMetadata[] {
         return defaultMetadataArgsStorage()
             .findParamsWithTargetAndMethod(action.target, action.method)

@@ -1,0 +1,19 @@
+<html>
+<script src="../../node_modules/socket.io-client/dist/socket.io.js"></script>
+<script>
+    var socket = io("http://localhost:3001");
+    socket.on("message_saved", function (message) {
+        console.log("Saved message received back: ", message);
+    });
+
+    function onClick() {
+        socket.emit("save", { text: "Hello this is message" });
+    }
+</script>
+<body>
+
+Watch console for events.<br/>
+<button onclick="onClick()">Click to send a save event to the socket server.</button>
+
+</body>
+</html>

@@ -104,6 +104,11 @@ export class SocketControllerExecutor {
 
     private handleConnection(controllers: ControllerMetadata[], socket: any) {
         controllers.forEach(controller => {
+            controller.uses.forEach(middleware => {
+                socket.use((pocket: any, next: (err?: any) => any) => {
+                    middleware.instance.use(pocket, next); // TODO: pass socket instance?
+                });
+            });
             controller.actions.forEach(action => {
                 if (action.type === ActionTypes.CONNECT) {
                     this.handleAction(action, {socket: socket})

@@ -3,6 +3,7 @@ import {ActionMetadataArgs} from "../metadata/args/ActionMetadataArgs";
 import {ParamMetadataArgs} from "../metadata/args/ParamMetadataArgs";
 import {MiddlewareMetadataArgs} from "../metadata/args/MiddlewareMetadataArgs";
 import {ResultMetadataArgs} from "../metadata/args/ResultMetadataArgs";
+import {UseMetadataArgs} from "../metadata/args/UseMetadataArgs";
 
 /**
  * Storage all metadatas read from decorators.
@@ -15,6 +16,7 @@ export class MetadataArgsStorage {
 
     controllers: SocketControllerMetadataArgs[] = [];
     middlewares: MiddlewareMetadataArgs[] = [];
+    uses: UseMetadataArgs[] = [];
     actions: ActionMetadataArgs[] = [];
     results: ResultMetadataArgs[] = [];
     params: ParamMetadataArgs[] = [];
@@ -37,6 +39,12 @@ export class MetadataArgsStorage {
 
     findActionsWithTarget(target: Function): ActionMetadataArgs[] {
         return this.actions.filter(action => action.target === target);
+    }
+
+    filterUsesWithTarget(target: Function): UseMetadataArgs[] {
+        return this.uses.filter(use => {
+            return use.target === target;
+        });
     }
 
     findResutlsWithTargetAndMethod(target: Function, methodName: string): ResultMetadataArgs[] {
