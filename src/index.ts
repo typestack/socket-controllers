@@ -34,8 +34,8 @@ function createExecutor(io: any, options: SocketControllersOptions): void {
     let controllerClasses: Function[];
     if (options && options.controllers && options.controllers.length)
         controllerClasses = (options.controllers as any[]).filter(controller => controller instanceof Function);
-        const controllerDirs = (options.controllers as any[]).filter(controller => typeof controller === "string");
-        controllerClasses.push(...importClassesFromDirectories(controllerDirs));
+    const controllerDirs = (options.controllers as any[]).filter(controller => typeof controller === "string");
+    controllerClasses.push(...importClassesFromDirectories(controllerDirs));
 
     let middlewareClasses: Function[];
     if (options && options.middlewares && options.middlewares.length) {
@@ -76,6 +76,24 @@ export function defaultMetadataArgsStorage(): MetadataArgsStorage {
 // -------------------------------------------------------------------------
 
 export * from "./container";
-export * from "./decorators";
 export * from "./SocketControllersOptions";
 export * from "./MiddlewareInterface";
+
+// decorators
+export * from "./decorator/SocketController";
+export * from "./decorator/SocketIO";
+export * from "./decorator/SocketId";
+export * from "./decorator/SocketRequest";
+export * from "./decorator/SocketRooms";
+export * from "./decorator/SocketQueryParam";
+export * from "./decorator/ConnectedSocket";
+export * from "./decorator/OnConnect";
+export * from "./decorator/OnDisconnect";
+export * from "./decorator/OnMessage";
+export * from "./decorator/EmitOnSuccess";
+export * from "./decorator/EmitOnFail";
+export * from "./decorator/SkipEmitOnEmptyResult";
+export * from "./decorator/Middleware";
+export * from "./decorator/MessageBody";
+export * from "./decorator/NspParams";
+export * from "./decorator/NspParam";
