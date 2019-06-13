@@ -5,7 +5,7 @@ import {defaultMetadataArgsStorage} from "../index";
 /**
  * Injects connected client's socket object to the controller action.
  */
-export function ConnectedSocket() {
+export function ConnectedSocket(): Function {
     return function (object: Object, methodName: string, index: number) {
         let format = (Reflect as any).getMetadata("design:paramtypes", object, methodName)[index];
         const metadata: ParamMetadataArgs = {

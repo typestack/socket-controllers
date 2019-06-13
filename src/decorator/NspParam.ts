@@ -5,7 +5,7 @@ import {defaultMetadataArgsStorage} from "../index";
 /**
  * Injects named param from the connected socket namespace.
  */
-export function NspParam(name: string) {
+export function NspParam(name: string): Function {
     return function (object: Object, methodName: string, index: number) {
         let format = (Reflect as any).getMetadata("design:paramtypes", object, methodName)[index];
         const metadata: ParamMetadataArgs = {

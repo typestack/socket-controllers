@@ -6,7 +6,7 @@ import {defaultMetadataArgsStorage} from "../index";
  *
  * @param namespace Namespace in which this controller's events will be registered.
  */
-export function SocketController(namespace?: string | RegExp) {
+export function SocketController(namespace?: string | RegExp): Function {
     return function (object: Function) {
         const metadata: SocketControllerMetadataArgs = {
             namespace: namespace,

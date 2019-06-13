@@ -5,7 +5,7 @@ import {defaultMetadataArgsStorage} from "../index";
 /**
  * Injects socket id from the received request.
  */
-export function SocketId() {
+export function SocketId(): Function {
     return function (object: Object, methodName: string, index: number) {
         let format = (Reflect as any).getMetadata("design:paramtypes", object, methodName)[index];
         const metadata: ParamMetadataArgs = {

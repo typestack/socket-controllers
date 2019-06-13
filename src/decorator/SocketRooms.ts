@@ -5,7 +5,7 @@ import {defaultMetadataArgsStorage} from "../index";
 /**
  * Injects rooms of the connected socket client.
  */
-export function SocketRooms() {
+export function SocketRooms(): Function {
     return function (object: Object, methodName: string, index: number) {
         let format = (Reflect as any).getMetadata("design:paramtypes", object, methodName)[index];
         const metadata: ParamMetadataArgs = {

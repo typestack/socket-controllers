@@ -6,7 +6,7 @@ import {defaultMetadataArgsStorage} from "../index";
 /**
  * Injects received message body.
  */
-export function MessageBody(options?: {classTransformOptions?: ClassTransformOptions}) {
+export function MessageBody(options?: {classTransformOptions?: ClassTransformOptions}): Function {
     return function (object: Object, methodName: string, index: number) {
         let format = (Reflect as any).getMetadata("design:paramtypes", object, methodName)[index];
         const metadata: ParamMetadataArgs = {
