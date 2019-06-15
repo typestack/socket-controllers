@@ -45,6 +45,7 @@
   },
   "devDependencies": {
     "@types/node": "^7.0.18",
+    "@types/socket.io": "^2.1.2",
     "del": "^2.2.2",
     "express": "^4.15.2",
     "gulp": "^3.9.1",
