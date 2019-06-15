@@ -10,7 +10,8 @@ export type ParamType = "custom"
     | "socket-request"
     | "socket-rooms"
     | "namespace-params"
-    | "namespace-param";
+    | "namespace-param"
+    | "current-user";
 
 /**
  * Controller action's parameter type.
@@ -26,4 +27,5 @@ export class ParamTypes {
     static SOCKET_ROOMS: ParamType = "socket-rooms";
     static NAMESPACE_PARAMS: ParamType = "namespace-params";
     static NAMESPACE_PARAM: ParamType = "namespace-param";
+    static CURRENT_USER: ParamType = "current-user";
 }

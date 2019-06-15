@@ -7,6 +7,7 @@ import {ParameterParseJsonError} from "./error/ParameterParseJsonError";
 import {ParamTypes} from "./metadata/types/ParamTypes";
 import {ControllerMetadata} from "./metadata/ControllerMetadata";
 import * as pathToRegexp from "path-to-regexp";
+import {CurrentUserChecker} from "./CurrentUserChecker";
 
 /**
  * Registers controllers and actions in the given server framework.
@@ -34,6 +35,11 @@ export class SocketControllerExecutor {
      * This operation is being executed when parsing user parameters.
      */
     plainToClassTransformOptions: ClassTransformOptions;
+
+    /**
+     * Special function used to get currently authorized user.
+     */
+    currentUserChecker: CurrentUserChecker;
 
     // -------------------------------------------------------------------------
     // Private properties
@@ -163,6 +169,9 @@ export class SocketControllerExecutor {
                 } else if (param.type === ParamTypes.NAMESPACE_PARAM) {
                     const params: any[] = this.handleNamespaceParams(options.socket, action, param);
                     return params[param.value];
+
+                } else if (param.type === ParamTypes.CURRENT_USER) {
+                    return this.currentUserChecker(options.socket);
 
                 } else {
                     return this.handleParam(param, options);
