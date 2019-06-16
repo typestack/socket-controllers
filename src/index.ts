@@ -2,6 +2,7 @@ import {MetadataArgsStorage} from "./metadata-builder/MetadataArgsStorage";
 import {importClassesFromDirectories} from "./util/DirectoryExportedClassesLoader";
 import {SocketControllerExecutor} from "./SocketControllerExecutor";
 import {SocketControllersOptions} from "./SocketControllersOptions";
+import {getFromContainer} from "./container";
 
 // -------------------------------------------------------------------------
 // Main Functions
@@ -25,10 +26,23 @@ export function createSocketServer(port: number, options?: SocketControllersOpti
 }
 
 /**
+ * Gets socket.io instance
+ */
+export function getSocketIO() {
+    return getSocketExecutor().io;
+}
+
+/**
+ * Get socket executor
+ */
+function getSocketExecutor() {
+    return getFromContainer(SocketControllerExecutor);
+}
+
+/**
  * Registers all loaded actions in your express application.
  */
 function createExecutor(io: any, options: SocketControllersOptions): void {
-    const executor = new SocketControllerExecutor(io);
 
     // second import all controllers and middlewares and error handlers
     let controllerClasses: Function[];
@@ -44,18 +58,9 @@ function createExecutor(io: any, options: SocketControllersOptions): void {
         middlewareClasses.push(...importClassesFromDirectories(middlewareDirs));
     }
 
-    if (options.useClassTransformer !== undefined) {
-        executor.useClassTransformer = options.useClassTransformer;
-    } else {
-        executor.useClassTransformer = true;
-    }
-
-    executor.classToPlainTransformOptions = options.classToPlainTransformOptions;
-    executor.plainToClassTransformOptions = options.plainToClassTransformOptions;
-    executor.currentUserChecker = options.currentUserChecker;
 
     // run socket controller register and other operations
-    executor.execute(controllerClasses, middlewareClasses);
+    getSocketExecutor().init(io, options).execute(controllerClasses, middlewareClasses);
 }
 
 // -------------------------------------------------------------------------

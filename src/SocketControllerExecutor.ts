@@ -8,6 +8,7 @@ import {ParamTypes} from "./metadata/types/ParamTypes";
 import {ControllerMetadata} from "./metadata/ControllerMetadata";
 import * as pathToRegexp from "path-to-regexp";
 import {CurrentUserChecker} from "./CurrentUserChecker";
+import {SocketControllersOptions} from "./SocketControllersOptions";
 
 /**
  * Registers controllers and actions in the given server framework.
@@ -41,6 +42,11 @@ export class SocketControllerExecutor {
      */
     currentUserChecker: CurrentUserChecker;
 
+    /**
+     * Specified socket.io instance
+     */
+    io: any;
+
     // -------------------------------------------------------------------------
     // Private properties
     // -------------------------------------------------------------------------
@@ -48,16 +54,24 @@ export class SocketControllerExecutor {
     private metadataBuilder: MetadataBuilder;
 
     // -------------------------------------------------------------------------
-    // Constructor
-    // -------------------------------------------------------------------------
-
-    constructor(private io: any) {
-        this.metadataBuilder = new MetadataBuilder();
-    }
-
-    // -------------------------------------------------------------------------
     // Public Methods
     // -------------------------------------------------------------------------
+
+    init(io: any, options: SocketControllersOptions) {
+        this.io = io;
+        this.metadataBuilder = new MetadataBuilder();
+
+        if (options.useClassTransformer !== undefined) {
+            this.useClassTransformer = options.useClassTransformer;
+        } else {
+            this.useClassTransformer = true;
+        }
+
+        this.classToPlainTransformOptions = options.classToPlainTransformOptions;
+        this.plainToClassTransformOptions = options.plainToClassTransformOptions;
+        this.currentUserChecker = options.currentUserChecker;
+        return this;
+    }
 
     execute(controllerClasses?: Function[], middlewareClasses?: Function[]) {
         this.registerControllers(controllerClasses);
