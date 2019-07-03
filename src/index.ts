@@ -58,9 +58,10 @@ function createExecutor(io: any, options: SocketControllersOptions): void {
         middlewareClasses.push(...importClassesFromDirectories(middlewareDirs));
     }
 
-
     // run socket controller register and other operations
-    getSocketExecutor().init(io, options).execute(controllerClasses, middlewareClasses);
+    getSocketExecutor()
+        .init(io, options)
+        .execute(controllerClasses, middlewareClasses);
 }
 
 // -------------------------------------------------------------------------
