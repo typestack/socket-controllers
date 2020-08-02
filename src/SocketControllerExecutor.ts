@@ -6,7 +6,7 @@ import { ParamMetadata } from './metadata/ParamMetadata';
 import { ParameterParseJsonError } from './error/ParameterParseJsonError';
 import { ParamTypes } from './metadata/types/ParamTypes';
 import { ControllerMetadata } from './metadata/ControllerMetadata';
-import * as pathToRegexp from 'path-to-regexp';
+import { pathToRegexp } from 'path-to-regexp';
 
 /**
  * Registers controllers and actions in the given server framework.
