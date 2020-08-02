@@ -1,27 +1,25 @@
-import {ResultType} from "../types/ResultTypes";
-import {ClassTransformOptions} from "class-transformer";
+import { ResultType } from '../types/ResultTypes';
+import { ClassTransformOptions } from 'class-transformer';
 
 /**
  */
 export interface ResultMetadataArgs {
+  /**
+   */
+  value?: string;
 
-    /**
-     */
-    value?: string;
+  /**
+   */
+  target: Function;
 
-    /**
-     */
-    target: Function;
-    
-    /**
-     */
-    method: string;
+  /**
+   */
+  method: string;
 
-    /**
-     * Result handler type.
-     */
-    type: ResultType;
+  /**
+   * Result handler type.
+   */
+  type: ResultType;
 
-    classTransformOptions?: ClassTransformOptions;
-    
+  classTransformOptions?: ClassTransformOptions;
 }

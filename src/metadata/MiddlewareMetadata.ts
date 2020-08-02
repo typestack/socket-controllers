@@ -1,31 +1,29 @@
-import {getFromContainer} from "../container";
-import {MiddlewareMetadataArgs} from "./args/MiddlewareMetadataArgs";
-import {MiddlewareInterface} from "../MiddlewareInterface";
+import { getFromContainer } from '../container';
+import { MiddlewareMetadataArgs } from './args/MiddlewareMetadataArgs';
+import { MiddlewareInterface } from '../MiddlewareInterface';
 
 export class MiddlewareMetadata {
+  // -------------------------------------------------------------------------
+  // Properties
+  // -------------------------------------------------------------------------
 
-    // -------------------------------------------------------------------------
-    // Properties
-    // -------------------------------------------------------------------------
+  target: Function;
+  priority: number;
 
-    target: Function;
-    priority: number;
+  // -------------------------------------------------------------------------
+  // Constructor
+  // -------------------------------------------------------------------------
 
-    // -------------------------------------------------------------------------
-    // Constructor
-    // -------------------------------------------------------------------------
-    
-    constructor(args: MiddlewareMetadataArgs) {
-        this.target = args.target;
-        this.priority = args.priority;
-    }
+  constructor(args: MiddlewareMetadataArgs) {
+    this.target = args.target;
+    this.priority = args.priority;
+  }
 
-    // -------------------------------------------------------------------------
-    // Accessors
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Accessors
+  // -------------------------------------------------------------------------
 
-    get instance(): MiddlewareInterface {
-        return getFromContainer<MiddlewareInterface>(this.target);
-    }
-    
+  get instance(): MiddlewareInterface {
+    return getFromContainer<MiddlewareInterface>(this.target);
+  }
 }

@@ -1,267 +1,250 @@
-import {MetadataBuilder} from "./metadata-builder/MetadataBuilder";
-import {ActionMetadata} from "./metadata/ActionMetadata";
-import {classToPlain, ClassTransformOptions, plainToClass} from "class-transformer";
-import {ActionTypes} from "./metadata/types/ActionTypes";
-import {ParamMetadata} from "./metadata/ParamMetadata";
-import {ParameterParseJsonError} from "./error/ParameterParseJsonError";
-import {ParamTypes} from "./metadata/types/ParamTypes";
-import {ControllerMetadata} from "./metadata/ControllerMetadata";
-import * as pathToRegexp from "path-to-regexp";
+import { MetadataBuilder } from './metadata-builder/MetadataBuilder';
+import { ActionMetadata } from './metadata/ActionMetadata';
+import { classToPlain, ClassTransformOptions, plainToClass } from 'class-transformer';
+import { ActionTypes } from './metadata/types/ActionTypes';
+import { ParamMetadata } from './metadata/ParamMetadata';
+import { ParameterParseJsonError } from './error/ParameterParseJsonError';
+import { ParamTypes } from './metadata/types/ParamTypes';
+import { ControllerMetadata } from './metadata/ControllerMetadata';
+import * as pathToRegexp from 'path-to-regexp';
 
 /**
  * Registers controllers and actions in the given server framework.
  */
 export class SocketControllerExecutor {
+  // -------------------------------------------------------------------------
+  // Public properties
+  // -------------------------------------------------------------------------
 
-    // -------------------------------------------------------------------------
-    // Public properties
-    // -------------------------------------------------------------------------
+  /**
+   * Indicates if class-transformer package should be used to perform message body serialization / deserialization.
+   * By default its enabled.
+   */
+  useClassTransformer: boolean;
 
-    /**
-     * Indicates if class-transformer package should be used to perform message body serialization / deserialization.
-     * By default its enabled.
-     */
-    useClassTransformer: boolean;
+  /**
+   * Global class transformer options passed to class-transformer during classToPlain operation.
+   * This operation is being executed when server returns response to user.
+   */
+  classToPlainTransformOptions: ClassTransformOptions;
 
-    /**
-     * Global class transformer options passed to class-transformer during classToPlain operation.
-     * This operation is being executed when server returns response to user.
-     */
-    classToPlainTransformOptions: ClassTransformOptions;
+  /**
+   * Global class transformer options passed to class-transformer during plainToClass operation.
+   * This operation is being executed when parsing user parameters.
+   */
+  plainToClassTransformOptions: ClassTransformOptions;
 
-    /**
-     * Global class transformer options passed to class-transformer during plainToClass operation.
-     * This operation is being executed when parsing user parameters.
-     */
-    plainToClassTransformOptions: ClassTransformOptions;
+  // -------------------------------------------------------------------------
+  // Private properties
+  // -------------------------------------------------------------------------
 
-    // -------------------------------------------------------------------------
-    // Private properties
-    // -------------------------------------------------------------------------
+  private metadataBuilder: MetadataBuilder;
 
-    private metadataBuilder: MetadataBuilder;
+  // -------------------------------------------------------------------------
+  // Constructor
+  // -------------------------------------------------------------------------
 
-    // -------------------------------------------------------------------------
-    // Constructor
-    // -------------------------------------------------------------------------
+  constructor(private io: any) {
+    this.metadataBuilder = new MetadataBuilder();
+  }
 
-    constructor(private io: any) {
-        this.metadataBuilder = new MetadataBuilder();
-    }
+  // -------------------------------------------------------------------------
+  // Public Methods
+  // -------------------------------------------------------------------------
 
-    // -------------------------------------------------------------------------
-    // Public Methods
-    // -------------------------------------------------------------------------
+  execute(controllerClasses?: Function[], middlewareClasses?: Function[]) {
+    this.registerControllers(controllerClasses);
+    this.registerMiddlewares(middlewareClasses);
+  }
 
-    execute(controllerClasses?: Function[], middlewareClasses?: Function[]) {
-        this.registerControllers(controllerClasses);
-        this.registerMiddlewares(middlewareClasses);
-    }
+  // -------------------------------------------------------------------------
+  // Private Methods
+  // -------------------------------------------------------------------------
 
-    // -------------------------------------------------------------------------
-    // Private Methods
-    // -------------------------------------------------------------------------
+  /**
+   * Registers middlewares.
+   */
+  private registerMiddlewares(classes?: Function[]): this {
+    const middlewares = this.metadataBuilder.buildMiddlewareMetadata(classes);
 
-    /**
-     * Registers middlewares.
-     */
-    private registerMiddlewares(classes?: Function[]): this {
-        const middlewares = this.metadataBuilder.buildMiddlewareMetadata(classes);
-
-        middlewares
-            .sort((middleware1, middleware2) => middleware1.priority - middleware2.priority)
-            .forEach(middleware => {
-                this.io.use((socket: any, next: (err?: any) => any) => {
-                    middleware.instance.use(socket, next);
-                });
-            });
-
-        return this;
-    }
-
-    /**
-     * Registers controllers.
-     */
-    private registerControllers(classes?: Function[]): this {
-        const controllers = this.metadataBuilder.buildControllerMetadata(classes);
-        const controllersWithoutNamespaces = controllers.filter(ctrl => !ctrl.namespace);
-        const controllersWithNamespaces = controllers.filter(ctrl => !!ctrl.namespace);
-
-        // register controllers without namespaces
-        this.io.on("connection", (socket: any) => this.handleConnection(controllersWithoutNamespaces, socket));
-
-        // register controllers with namespaces
-        controllersWithNamespaces.forEach(controller => {
-            let namespace: string | RegExp = controller.namespace;
-            if (!(namespace instanceof RegExp)) {
-                namespace = pathToRegexp(namespace);
-            }
-            this.io.of(namespace).on("connection", (socket: any) => this.handleConnection([controller], socket));
+    middlewares
+      .sort((middleware1, middleware2) => middleware1.priority - middleware2.priority)
+      .forEach(middleware => {
+        this.io.use((socket: any, next: (err?: any) => any) => {
+          middleware.instance.use(socket, next);
         });
+      });
 
-        return this;
-    }
+    return this;
+  }
 
-    private handleConnection(controllers: ControllerMetadata[], socket: any) {
-        controllers.forEach(controller => {
-            controller.actions.forEach(action => {
-                if (action.type === ActionTypes.CONNECT) {
-                    this.handleAction(action, {socket: socket})
-                        .then(result => this.handleSuccessResult(result, action, socket))
-                        .catch(error => this.handleFailResult(error, action, socket));
+  /**
+   * Registers controllers.
+   */
+  private registerControllers(classes?: Function[]): this {
+    const controllers = this.metadataBuilder.buildControllerMetadata(classes);
+    const controllersWithoutNamespaces = controllers.filter(ctrl => !ctrl.namespace);
+    const controllersWithNamespaces = controllers.filter(ctrl => !!ctrl.namespace);
 
-                } else if (action.type === ActionTypes.DISCONNECT) {
-                    socket.on("disconnect", () => {
-                        this.handleAction(action, {socket: socket})
-                            .then(result => this.handleSuccessResult(result, action, socket))
-                            .catch(error => this.handleFailResult(error, action, socket));
-                    });
+    // register controllers without namespaces
+    this.io.on('connection', (socket: any) => this.handleConnection(controllersWithoutNamespaces, socket));
 
-                } else if (action.type === ActionTypes.MESSAGE) {
-                    socket.on(action.name, (data: any) => { // todo get multiple args
-                        this.handleAction(action, {socket: socket, data: data})
-                            .then(result => this.handleSuccessResult(result, action, socket))
-                            .catch(error => this.handleFailResult(error, action, socket));
-                    });
-                }
-            });
-        });
-    }
+    // register controllers with namespaces
+    controllersWithNamespaces.forEach(controller => {
+      let namespace: string | RegExp = controller.namespace;
+      if (!(namespace instanceof RegExp)) {
+        namespace = pathToRegexp(namespace);
+      }
+      this.io.of(namespace).on('connection', (socket: any) => this.handleConnection([controller], socket));
+    });
 
-    private handleAction(action: ActionMetadata, options: {socket?: any, data?: any}): Promise<any> {
+    return this;
+  }
 
-        // compute all parameters
-        const paramsPromises = action.params
-            .sort((param1, param2) => param1.index - param2.index)
-            .map(param => {
-                if (param.type === ParamTypes.CONNECTED_SOCKET) {
-                    return options.socket;
+  private handleConnection(controllers: ControllerMetadata[], socket: any) {
+    controllers.forEach(controller => {
+      controller.actions.forEach(action => {
+        if (action.type === ActionTypes.CONNECT) {
+          this.handleAction(action, { socket: socket })
+            .then(result => this.handleSuccessResult(result, action, socket))
+            .catch(error => this.handleFailResult(error, action, socket));
+        } else if (action.type === ActionTypes.DISCONNECT) {
+          socket.on('disconnect', () => {
+            this.handleAction(action, { socket: socket })
+              .then(result => this.handleSuccessResult(result, action, socket))
+              .catch(error => this.handleFailResult(error, action, socket));
+          });
+        } else if (action.type === ActionTypes.MESSAGE) {
+          socket.on(action.name, (data: any) => {
+            // todo get multiple args
+            this.handleAction(action, { socket: socket, data: data })
+              .then(result => this.handleSuccessResult(result, action, socket))
+              .catch(error => this.handleFailResult(error, action, socket));
+          });
+        }
+      });
+    });
+  }
 
-                } else if (param.type === ParamTypes.SOCKET_IO) {
-                    return this.io;
+  private handleAction(action: ActionMetadata, options: { socket?: any; data?: any }): Promise<any> {
+    // compute all parameters
+    const paramsPromises = action.params
+      .sort((param1, param2) => param1.index - param2.index)
+      .map(param => {
+        if (param.type === ParamTypes.CONNECTED_SOCKET) {
+          return options.socket;
+        } else if (param.type === ParamTypes.SOCKET_IO) {
+          return this.io;
+        } else if (param.type === ParamTypes.SOCKET_QUERY_PARAM) {
+          return options.socket.handshake.query[param.value];
+        } else if (param.type === ParamTypes.SOCKET_ID) {
+          return options.socket.id;
+        } else if (param.type === ParamTypes.SOCKET_REQUEST) {
+          return options.socket.request;
+        } else if (param.type === ParamTypes.SOCKET_ROOMS) {
+          return options.socket.rooms;
+        } else if (param.type === ParamTypes.NAMESPACE_PARAMS) {
+          return this.handleNamespaceParams(options.socket, action, param);
+        } else if (param.type === ParamTypes.NAMESPACE_PARAM) {
+          const params: any[] = this.handleNamespaceParams(options.socket, action, param);
+          return params[param.value];
+        } else {
+          return this.handleParam(param, options);
+        }
+      });
 
-                } else if (param.type === ParamTypes.SOCKET_QUERY_PARAM) {
-                    return options.socket.handshake.query[param.value];
+    // after all parameters are computed
+    const paramsPromise = Promise.all(paramsPromises).catch(error => {
+      console.log('Error during computation params of the socket controller: ', error);
+      throw error;
+    });
+    return paramsPromise.then(params => {
+      return action.executeAction(params);
+    });
+  }
 
-                } else if (param.type === ParamTypes.SOCKET_ID) {
-                    return options.socket.id;
+  private handleParam(param: ParamMetadata, options: { socket?: any; data?: any }) {
+    let value = options.data;
+    if (value !== null && value !== undefined && value !== '') value = this.handleParamFormat(value, param);
 
-                } else if (param.type === ParamTypes.SOCKET_REQUEST) {
-                    return options.socket.request;
+    // if transform function is given for this param then apply it
+    if (param.transform) value = param.transform(value, options.socket);
 
-                } else if (param.type === ParamTypes.SOCKET_ROOMS) {
-                    return options.socket.rooms;
+    return value;
+  }
 
-                } else if (param.type === ParamTypes.NAMESPACE_PARAMS) {
-                    return this.handleNamespaceParams(options.socket, action, param);
+  private handleParamFormat(value: any, param: ParamMetadata): any {
+    const format = param.reflectedType;
+    const formatName = format instanceof Function && format.name ? format.name : format instanceof String ? format : '';
+    switch (formatName.toLowerCase()) {
+      case 'number':
+        return +value;
 
-                } else if (param.type === ParamTypes.NAMESPACE_PARAM) {
-                    const params: any[] = this.handleNamespaceParams(options.socket, action, param);
-                    return params[param.value];
-
-                } else {
-                    return this.handleParam(param, options);
-                }
-            });
-
-        // after all parameters are computed
-        const paramsPromise = Promise.all(paramsPromises).catch(error => {
-            console.log("Error during computation params of the socket controller: ", error);
-            throw error;
-        });
-        return paramsPromise.then(params => {
-            return action.executeAction(params);
-        });
-    }
-
-    private handleParam(param: ParamMetadata, options: {socket?: any, data?: any}) {
-
-        let value = options.data;
-        if (value !== null && value !== undefined && value !== "")
-            value = this.handleParamFormat(value, param);
-
-        // if transform function is given for this param then apply it
-        if (param.transform)
-            value = param.transform(value, options.socket);
-
+      case 'string':
         return value;
-    }
 
-    private handleParamFormat(value: any, param: ParamMetadata): any {
-        const format = param.reflectedType;
-        const formatName = format instanceof Function && format.name ? format.name : format instanceof String ? format : "";
-        switch (formatName.toLowerCase()) {
-            case "number":
-                return +value;
-
-            case "string":
-                return value;
-
-            case "boolean":
-                if (value === "true") {
-                    return true;
-
-                } else if (value === "false") {
-                    return false;
-                }
-                return !!value;
-
-            default:
-                const isObjectFormat = format instanceof Function || formatName.toLowerCase() === "object";
-                if (value && isObjectFormat)
-                    value = this.parseParamValue(value, param);
+      case 'boolean':
+        if (value === 'true') {
+          return true;
+        } else if (value === 'false') {
+          return false;
         }
-        return value;
+        return !!value;
+
+      default:
+        const isObjectFormat = format instanceof Function || formatName.toLowerCase() === 'object';
+        if (value && isObjectFormat) value = this.parseParamValue(value, param);
     }
+    return value;
+  }
 
-    private parseParamValue(value: any, paramMetadata: ParamMetadata) {
-        try {
-            const parseValue = typeof value === "string" ? JSON.parse(value) : value;
-            if (paramMetadata.reflectedType !== Object && paramMetadata.reflectedType && this.useClassTransformer) {
-                const options = paramMetadata.classTransformOptions || this.plainToClassTransformOptions;
-                return plainToClass(paramMetadata.reflectedType, parseValue, options);
-            } else {
-                return parseValue;
-            }
-        } catch (er) {
-            throw new ParameterParseJsonError(value);
-        }
+  private parseParamValue(value: any, paramMetadata: ParamMetadata) {
+    try {
+      const parseValue = typeof value === 'string' ? JSON.parse(value) : value;
+      if (paramMetadata.reflectedType !== Object && paramMetadata.reflectedType && this.useClassTransformer) {
+        const options = paramMetadata.classTransformOptions || this.plainToClassTransformOptions;
+        return plainToClass(paramMetadata.reflectedType, parseValue, options);
+      } else {
+        return parseValue;
+      }
+    } catch (er) {
+      throw new ParameterParseJsonError(value);
     }
+  }
 
-    private handleSuccessResult(result: any, action: ActionMetadata, socket: any) {
-        if (result !== null && result !== undefined && action.emitOnSuccess) {
-            const transformOptions = action.emitOnSuccess.classTransformOptions || this.classToPlainTransformOptions;
-            const transformedResult = this.useClassTransformer && result instanceof Object ? classToPlain(result, transformOptions) : result;
-            socket.emit(action.emitOnSuccess.value, transformedResult);
-
-        } else if ((result === null || result === undefined) && action.emitOnSuccess && !action.skipEmitOnEmptyResult) {
-            socket.emit(action.emitOnSuccess.value);
-        }
+  private handleSuccessResult(result: any, action: ActionMetadata, socket: any) {
+    if (result !== null && result !== undefined && action.emitOnSuccess) {
+      const transformOptions = action.emitOnSuccess.classTransformOptions || this.classToPlainTransformOptions;
+      const transformedResult =
+        this.useClassTransformer && result instanceof Object ? classToPlain(result, transformOptions) : result;
+      socket.emit(action.emitOnSuccess.value, transformedResult);
+    } else if ((result === null || result === undefined) && action.emitOnSuccess && !action.skipEmitOnEmptyResult) {
+      socket.emit(action.emitOnSuccess.value);
     }
+  }
 
-    private handleFailResult(result: any, action: ActionMetadata, socket: any) {
-        if (result !== null && result !== undefined && action.emitOnFail) {
-            const transformOptions = action.emitOnSuccess.classTransformOptions || this.classToPlainTransformOptions;
-            let transformedResult = this.useClassTransformer && result instanceof Object ? classToPlain(result, transformOptions) : result;
-            if (result instanceof Error && !Object.keys(transformedResult).length) {
-                transformedResult = result.toString();
-            }
-            socket.emit(action.emitOnFail.value, transformedResult);
-
-        } else if ((result === null || result === undefined) && action.emitOnFail && !action.skipEmitOnEmptyResult) {
-            socket.emit(action.emitOnFail.value);
-        }
+  private handleFailResult(result: any, action: ActionMetadata, socket: any) {
+    if (result !== null && result !== undefined && action.emitOnFail) {
+      const transformOptions = action.emitOnSuccess.classTransformOptions || this.classToPlainTransformOptions;
+      let transformedResult =
+        this.useClassTransformer && result instanceof Object ? classToPlain(result, transformOptions) : result;
+      if (result instanceof Error && !Object.keys(transformedResult).length) {
+        transformedResult = result.toString();
+      }
+      socket.emit(action.emitOnFail.value, transformedResult);
+    } else if ((result === null || result === undefined) && action.emitOnFail && !action.skipEmitOnEmptyResult) {
+      socket.emit(action.emitOnFail.value);
     }
+  }
 
-    private handleNamespaceParams(socket: any, action: ActionMetadata, param: ParamMetadata): any[] {
-        const keys: any[] = [];
-        const regexp = pathToRegexp(action.controllerMetadata.namespace, keys);
-        const parts: any[] = regexp.exec(socket.nsp.name);
-        const params: any[] = [];
-        keys.forEach((key: any, index: number) => {
-            params[key.name] = this.handleParamFormat(parts[index + 1], param);
-        });
-        return params;
-    }
-
+  private handleNamespaceParams(socket: any, action: ActionMetadata, param: ParamMetadata): any[] {
+    const keys: any[] = [];
+    const regexp = pathToRegexp(action.controllerMetadata.namespace, keys);
+    const parts: any[] = regexp.exec(socket.nsp.name);
+    const params: any[] = [];
+    keys.forEach((key: any, index: number) => {
+      params[key.name] = this.handleParamFormat(parts[index + 1], param);
+    });
+    return params;
+  }
 }

@@ -1,43 +1,41 @@
-import {ActionMetadata} from "./ActionMetadata";
-import {SocketControllerMetadataArgs} from "./args/SocketControllerMetadataArgs";
-import {getFromContainer} from "../container";
+import { ActionMetadata } from './ActionMetadata';
+import { SocketControllerMetadataArgs } from './args/SocketControllerMetadataArgs';
+import { getFromContainer } from '../container';
 
 export class ControllerMetadata {
+  // -------------------------------------------------------------------------
+  // Properties
+  // -------------------------------------------------------------------------
 
-    // -------------------------------------------------------------------------
-    // Properties
-    // -------------------------------------------------------------------------
+  /**
+   * Controller actions.
+   */
+  actions: ActionMetadata[];
 
-    /**
-     * Controller actions.
-     */
-    actions: ActionMetadata[];
+  /**
+   * Indicates object which is used by this controller.
+   */
+  target: Function;
 
-    /**
-     * Indicates object which is used by this controller.
-     */
-    target: Function;
+  /**
+   * Base route for all actions registered in this controller.
+   */
+  namespace: string | RegExp;
 
-    /**
-     * Base route for all actions registered in this controller.
-     */
-    namespace: string | RegExp;
+  // -------------------------------------------------------------------------
+  // Constructor
+  // -------------------------------------------------------------------------
 
-    // -------------------------------------------------------------------------
-    // Constructor
-    // -------------------------------------------------------------------------
+  constructor(args: SocketControllerMetadataArgs) {
+    this.target = args.target;
+    this.namespace = args.namespace;
+  }
 
-    constructor(args: SocketControllerMetadataArgs) {
-        this.target = args.target;
-        this.namespace = args.namespace;
-    }
+  // -------------------------------------------------------------------------
+  // Accessors
+  // -------------------------------------------------------------------------
 
-    // -------------------------------------------------------------------------
-    // Accessors
-    // -------------------------------------------------------------------------
-
-    get instance(): any {
-        return getFromContainer(this.target);
-    }
-
+  get instance(): any {
+    return getFromContainer(this.target);
+  }
 }

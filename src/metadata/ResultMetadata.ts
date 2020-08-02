@@ -1,47 +1,45 @@
-import {ActionMetadata} from "./ActionMetadata";
-import {ResultType} from "./types/ResultTypes";
-import {ResultMetadataArgs} from "./args/ResultMetadataArgs";
-import {ClassTransformOptions} from "class-transformer";
+import { ActionMetadata } from './ActionMetadata';
+import { ResultType } from './types/ResultTypes';
+import { ResultMetadataArgs } from './args/ResultMetadataArgs';
+import { ClassTransformOptions } from 'class-transformer';
 
 export class ResultMetadata {
+  // -------------------------------------------------------------------------
+  // Properties
+  // -------------------------------------------------------------------------
 
-    // -------------------------------------------------------------------------
-    // Properties
-    // -------------------------------------------------------------------------
+  /**
+   */
+  actionMetadata: ActionMetadata;
 
-    /**
-     */
-    actionMetadata: ActionMetadata;
+  /**
+   */
+  target: Function;
 
-    /**
-     */
-    target: Function;
+  /**
+   */
+  method: string;
 
-    /**
-     */
-    method: string;
+  /**
+   */
+  type: ResultType;
 
-    /**
-     */
-    type: ResultType;
+  /**
+   */
+  value: any;
 
-    /**
-     */
-    value: any;
+  classTransformOptions: ClassTransformOptions;
 
-    classTransformOptions: ClassTransformOptions;
+  // -------------------------------------------------------------------------
+  // Public Methods
+  // -------------------------------------------------------------------------
 
-    // -------------------------------------------------------------------------
-    // Public Methods
-    // -------------------------------------------------------------------------
-    
-    constructor(action: ActionMetadata, args: ResultMetadataArgs) {
-        this.actionMetadata = action;
-        this.target = args.target;
-        this.method = args.method;
-        this.type = args.type;
-        this.value = args.value;
-        this.classTransformOptions = args.classTransformOptions;
-    }
-
+  constructor(action: ActionMetadata, args: ResultMetadataArgs) {
+    this.actionMetadata = action;
+    this.target = args.target;
+    this.method = args.method;
+    this.type = args.type;
+    this.value = args.value;
+    this.classTransformOptions = args.classTransformOptions;
+  }
 }
