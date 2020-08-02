@@ -1,6 +1,7 @@
 # socket-controllers
 
-[![Build Status](https://travis-ci.com/typestack/socket-controllers.svg?branch=master)](https://travis-ci.com/typestack/socket-controllers)
+![Build Status](https://github.com/typestack/socket-controllers/workflows/CI/badge.svg)
+[![codecov](https://codecov.io/gh/typestack/socket-controllers/branch/develop/graph/badge.svg)](https://codecov.io/gh/typestack/socket-controllers)
 [![npm version](https://badge.fury.io/js/socket-controllers.svg)](https://badge.fury.io/js/socket-controllers)
 
 Use class-based controllers to handle websocket events. Helps to organize your code using websockets in classes.
