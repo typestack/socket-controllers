@@ -1,64 +1,75 @@
 {
   "name": "socket-controllers",
-  "private": true,
   "version": "0.0.5",
-  "description": "Use class-based controllers to handle websocket events",
+  "description": "Use class-based controllers to handle websocket events.",
   "license": "MIT",
-  "readmeFilename": "README.md",
   "main": "index.js",
-  "keywords": [
-    "websocket",
-    "websockets",
-    "typescript",
-    "typescript-websocket",
-    "typescript-websockets",
-    "socket-controllers",
-    "socket.io",
-    "socket-server"
-  ],
   "author": {
-    "name": "Umed Khudoiberdiev",
-    "email": "pleerock.me@gmail.com"
+    "name": "TypeStack contributors"
   },
-  "contributors": [
-    {
-      "name": "Rustam Mamadaminov",
-      "email": "rmamdaminov@gmail.com"
-    }
-  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/pleerock/socket-controllers.git"
   },
-  "bugs": {
-    "url": "https://github.com/pleerock/socket-controllers/issues"
-  },
+  "keywords": [
+    "websocket",
+    "typescript",
+    "typescript-websocket",
+    "socket-controllers",
+    "socket.io",
+    "socket-server"
+  ],
   "scripts": {
-    "test": "gulp package",
-    "build": "gulp package"
+    "build": "rimraf build && tsc --project tsconfig.prod.json",
+    "prettier:fix": "prettier --write \"**/*.{ts,md}\"",
+    "prettier:check": "prettier --check \"**/*.{ts,md}\"",
+    "lint:fix": "eslint --max-warnings 0 --fix --ext .ts src/",
+    "lint:check": "eslint --max-warnings 0 --ext .ts src/",
+    "test": "jest --coverage --verbose",
+    "test:watch": "jest --watch",
+    "test:ci": "jest --runInBand --no-cache --coverage --verbose"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.md": [
+      "npm run prettier:fix"
+    ],
+    "*.ts": [
+      "npm run prettier:fix"
+    ]
   },
   "dependencies": {
-    "class-transformer": "^0.1.6",
+    "class-transformer": "^0.3.1",
+    "glob": "^7.1.6",
     "path-to-regexp": "^3.0.0",
-    "reflect-metadata": "^0.1.10",
-    "socket.io": "^2.0.1"
+    "reflect-metadata": "^0.1.13",
+    "socket.io": "^2.3.0"
   },
   "devDependencies": {
-    "@types/node": "^7.0.18",
-    "del": "^2.2.2",
+    "@types/glob": "^7.1.3",
+    "@types/jest": "^26.0.8",
+    "@types/node": "^14.0.27",
+    "@typescript-eslint/eslint-plugin": "^3.7.1",
+    "@typescript-eslint/parser": "^3.7.1",
+    "dayjs": "1.8.31",
+    "eslint": "^7.5.0",
+    "eslint-config-prettier": "^6.11.0",
+    "eslint-plugin-jest": "^23.20.0",
     "express": "^4.15.2",
-    "gulp": "^3.9.1",
-    "gulp-replace": "^0.5.4",
-    "gulp-shell": "^0.6.3",
-    "gulp-sourcemaps": "^2.6.0",
-    "gulp-tslint": "^8.0.0",
-    "gulp-typescript": "^3.1.6",
-    "gulpclass": "^0.1.2",
-    "socket.io-client": "^2.0.1",
-    "ts-node": "^3.0.4",
-    "tslint": "^5.2.0",
-    "tslint-stylish": "^2.1.0",
-    "typedi": "^0.5.2",
-    "typescript": "^2.3.2"
+    "husky": "^4.2.5",
+    "jest": "^26.2.2",
+    "lint-staged": "^10.2.11",
+    "prettier": "^2.0.5",
+    "reflect-metadata": "0.1.13",
+    "rimraf": "3.0.2",
+    "socket.io-client": "^2.3.0",
+    "ts-jest": "^26.1.4",
+    "ts-node": "^8.10.2",
+    "typedi": "^0.8.0",
+    "typescript": "^3.9.7"
   }
 }
