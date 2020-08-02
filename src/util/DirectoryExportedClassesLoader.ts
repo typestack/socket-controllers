@@ -1,4 +1,5 @@
 import * as path from "path";
+import * as glob from "glob";
 
 /**
  * Loads all exported classes from the given directory.
@@ -20,7 +21,7 @@ export function importClassesFromDirectories(directories: string[], formats = ["
     };
 
     const allFiles = directories.reduce((allDirs, dir) => {
-        return allDirs.concat(require("glob").sync(path.normalize(dir)));
+        return allDirs.concat(glob.sync(path.normalize(dir)));
     }, [] as string[]);
 
     const dirs = allFiles

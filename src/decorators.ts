@@ -72,7 +72,7 @@ export function OnDisconnect(): Function {
  */
 export function ConnectedSocket() {
     return function (object: Object, methodName: string, index: number) {
-        let format = (Reflect as any).getMetadata("design:paramtypes", object, methodName)[index];
+        const format = (Reflect as any).getMetadata("design:paramtypes", object, methodName)[index];
         const metadata: ParamMetadataArgs = {
             target: object.constructor,
             method: methodName,
@@ -89,7 +89,7 @@ export function ConnectedSocket() {
  */
 export function SocketIO() {
     return function (object: Object, methodName: string, index: number) {
-        let format = (Reflect as any).getMetadata("design:paramtypes", object, methodName)[index];
+        const format = (Reflect as any).getMetadata("design:paramtypes", object, methodName)[index];
         const metadata: ParamMetadataArgs = {
             target: object.constructor,
             method: methodName,
@@ -106,7 +106,7 @@ export function SocketIO() {
  */
 export function MessageBody(options?: {classTransformOptions?: ClassTransformOptions}) {
     return function (object: Object, methodName: string, index: number) {
-        let format = (Reflect as any).getMetadata("design:paramtypes", object, methodName)[index];
+        const format = (Reflect as any).getMetadata("design:paramtypes", object, methodName)[index];
         const metadata: ParamMetadataArgs = {
             target: object.constructor,
             method: methodName,
@@ -124,7 +124,7 @@ export function MessageBody(options?: {classTransformOptions?: ClassTransformOpt
  */
 export function SocketQueryParam(name?: string) {
     return function (object: Object, methodName: string, index: number) {
-        let format = (Reflect as any).getMetadata("design:paramtypes", object, methodName)[index];
+        const format = (Reflect as any).getMetadata("design:paramtypes", object, methodName)[index];
         const metadata: ParamMetadataArgs = {
             target: object.constructor,
             method: methodName,
@@ -142,7 +142,7 @@ export function SocketQueryParam(name?: string) {
  */
 export function SocketId() {
     return function (object: Object, methodName: string, index: number) {
-        let format = (Reflect as any).getMetadata("design:paramtypes", object, methodName)[index];
+        const format = (Reflect as any).getMetadata("design:paramtypes", object, methodName)[index];
         const metadata: ParamMetadataArgs = {
             target: object.constructor,
             method: methodName,
@@ -159,7 +159,7 @@ export function SocketId() {
  */
 export function SocketRequest() {
     return function (object: Object, methodName: string, index: number) {
-        let format = (Reflect as any).getMetadata("design:paramtypes", object, methodName)[index];
+        const format = (Reflect as any).getMetadata("design:paramtypes", object, methodName)[index];
         const metadata: ParamMetadataArgs = {
             target: object.constructor,
             method: methodName,
@@ -176,7 +176,7 @@ export function SocketRequest() {
  */
 export function NspParams() {
     return function (object: Object, methodName: string, index: number) {
-        let format = (Reflect as any).getMetadata("design:paramtypes", object, methodName)[index];
+        const format = (Reflect as any).getMetadata("design:paramtypes", object, methodName)[index];
         const metadata: ParamMetadataArgs = {
             target: object.constructor,
             method: methodName,
@@ -193,7 +193,7 @@ export function NspParams() {
  */
 export function NspParam(name: string) {
     return function (object: Object, methodName: string, index: number) {
-        let format = (Reflect as any).getMetadata("design:paramtypes", object, methodName)[index];
+        const format = (Reflect as any).getMetadata("design:paramtypes", object, methodName)[index];
         const metadata: ParamMetadataArgs = {
             target: object.constructor,
             method: methodName,
@@ -211,7 +211,7 @@ export function NspParam(name: string) {
  */
 export function SocketRooms() {
     return function (object: Object, methodName: string, index: number) {
-        let format = (Reflect as any).getMetadata("design:paramtypes", object, methodName)[index];
+        const format = (Reflect as any).getMetadata("design:paramtypes", object, methodName)[index];
         const metadata: ParamMetadataArgs = {
             target: object.constructor,
             method: methodName,

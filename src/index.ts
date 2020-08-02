@@ -19,6 +19,7 @@ export function useSocketServer<T>(io: T, options?: SocketControllersOptions): T
  * Registers all loaded actions in your express application.
  */
 export function createSocketServer(port: number, options?: SocketControllersOptions): any {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const io = require("socket.io")(port);
     createExecutor(io, options || {});
     return io;

@@ -64,6 +64,8 @@ export class ActionMetadata {
     // -------------------------------------------------------------------------
 
     executeAction(params: any[]) {
+        // TODO: remove fix this eslint warning
+        // eslint-disable-next-line prefer-spread
         return this.controllerMetadata.instance[this.method].apply(this.controllerMetadata.instance, params);
     }
 

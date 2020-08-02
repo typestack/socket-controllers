@@ -231,7 +231,7 @@ export class SocketControllerExecutor {
     private handleSuccessResult(result: any, action: ActionMetadata, socket: any) {
         if (result !== null && result !== undefined && action.emitOnSuccess) {
             const transformOptions = action.emitOnSuccess.classTransformOptions || this.classToPlainTransformOptions;
-            let transformedResult = this.useClassTransformer && result instanceof Object ? classToPlain(result, transformOptions) : result;
+            const transformedResult = this.useClassTransformer && result instanceof Object ? classToPlain(result, transformOptions) : result;
             socket.emit(action.emitOnSuccess.value, transformedResult);
 
         } else if ((result === null || result === undefined) && action.emitOnSuccess && !action.skipEmitOnEmptyResult) {
