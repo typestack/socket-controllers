@@ -1,4 +1,4 @@
-# Logs
+# Log files
 logs
 *.log
 *.tmp
@@ -6,9 +6,9 @@ logs
 log.txt
 npm-debug.log*
 
-# Testing
-lib-cov
-coverage
+# Testing output
+lib-cov/**
+coverage/**
 
 # Environment files
 .env
@@ -28,24 +28,25 @@ Thumbs.db
 Desktop.ini
 $RECYCLE.BIN/
 
-# Editors
-.idea
-.vscode
+# IDE - Sublime
 *.sublime-project
 *.sublime-workspace
-.project
-.classpath
-.c9/
-*.launch
-.settings/
 
 # IDE - VSCode
-.vscode/*
+.vscode/**
 !.vscode/tasks.json
 !.vscode/launch.json
 
-# compiled output
-dist
-build
-tmp
-out-tsc
+# IDE - IntelliJ
+.idea
+
+# Compilation output folders
+dist/
+build/
+tmp/
+out-tsc/
+temp
+
+# Files for playing around locally
+playground.ts
+playground.js
