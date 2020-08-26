@@ -68,7 +68,7 @@
     "reflect-metadata": "0.1.13",
     "rimraf": "3.0.2",
     "socket.io-client": "^2.3.0",
-    "ts-jest": "^26.2.0",
+    "ts-jest": "^26.3.0",
     "ts-node": "^9.0.0",
     "typedi": "^0.8.0",
     "typescript": "^3.9.7"
