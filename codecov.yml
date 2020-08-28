@@ -5,6 +5,7 @@ coverage:
   status:
     project:
       default:
+        threshold: 0%
         paths: 
           - src/**/*.ts
 comment: off
