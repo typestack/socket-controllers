@@ -53,13 +53,13 @@
   "devDependencies": {
     "@types/glob": "^7.1.3",
     "@types/jest": "^26.0.15",
-    "@types/node": "^14.14.7",
+    "@types/node": "^14.14.20",
     "@types/socket.io": "^2.1.11",
     "@typescript-eslint/eslint-plugin": "^4.8.0",
     "@typescript-eslint/parser": "^4.8.0",
     "eslint": "^7.9.0",
     "eslint-config-prettier": "^7.1.0",
-    "eslint-plugin-jest": "^24.0.1",
+    "eslint-plugin-jest": "^24.1.3",
     "express": "^4.15.2",
     "husky": "^4.3.0",
     "jest": "^26.4.2",
@@ -71,6 +71,6 @@
     "ts-jest": "^26.3.0",
     "ts-node": "^9.0.0",
     "typedi": "^0.8.0",
-    "typescript": "^4.0.2"
+    "typescript": "^4.1.3"
   }
 }
