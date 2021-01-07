@@ -46,7 +46,7 @@
     "@types/path-to-regexp": "^1.7.0",
     "class-transformer": "^0.3.1",
     "glob": "^7.1.6",
-    "path-to-regexp": "^6.1.0",
+    "path-to-regexp": "^6.2.0",
     "reflect-metadata": "^0.1.13",
     "socket.io": "^2.3.0"
   },
