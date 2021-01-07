@@ -48,7 +48,7 @@
     "glob": "^7.1.6",
     "path-to-regexp": "^6.2.0",
     "reflect-metadata": "^0.1.13",
-    "socket.io": "^3.0.5"
+    "socket.io": "^2.3.0"
   },
   "devDependencies": {
     "@types/glob": "^7.1.3",
