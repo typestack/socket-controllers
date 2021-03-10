@@ -393,6 +393,7 @@ let io = createSocketServer(3000, {
 That's it, now you can inject your services into your controllers:
 
 ```typescript
+@Service()
 @SocketController()
 export class MessageController {
   constructor(private messageRepository: MessageRepository) {}
@@ -400,6 +401,8 @@ export class MessageController {
   // ... controller actions
 }
 ```
+
+> Note: TypeDI won't create instances for unknown classes since 0.9.0, you have to decorate your Class as a `Service()` as well.
 
 ## Decorators Reference
 
