@@ -402,7 +402,7 @@ export class MessageController {
 }
 ```
 
-> Note: As TypeDI@0.9.0 won't create instances for unknown classes, you have to decorate your Class as a `Service()` as well.
+> Note: TypeDI won't create instances for unknown classes since 0.9.0, you have to decorate your Class as a `Service()` as well.
 
 ## Decorators Reference
 
