@@ -33,10 +33,11 @@ function createExecutor(io: any, options: SocketControllersOptions): void {
 
   // second import all controllers and middlewares and error handlers
   let controllerClasses: Function[];
-  if (options && options.controllers && options.controllers.length)
+  if (options && options.controllers && options.controllers.length) {
     controllerClasses = (options.controllers as any[]).filter(controller => controller instanceof Function);
-  const controllerDirs = (options.controllers as any[]).filter(controller => typeof controller === 'string');
-  controllerClasses.push(...importClassesFromDirectories(controllerDirs));
+    const controllerDirs = (options.controllers as any[]).filter(controller => typeof controller === 'string');
+    controllerClasses.push(...importClassesFromDirectories(controllerDirs));
+  }
 
   let middlewareClasses: Function[];
   if (options && options.middlewares && options.middlewares.length) {
