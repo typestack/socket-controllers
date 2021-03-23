@@ -12,5 +12,6 @@ updates:
     prefix: build
     include: scope
   ignore:
+    - dependency-name: "husky"
     - dependency-name: "socket.io"
     - dependency-name: "socket.io-client"
