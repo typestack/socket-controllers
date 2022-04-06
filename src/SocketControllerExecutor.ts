@@ -75,7 +75,8 @@ export class SocketControllerExecutor {
             middleware.nsp instanceof RegExp
               ? middleware.nsp
               : (name: string, auth: unknown, next: (err: Error | null, success: boolean) => void) => {
-                  next(null, (middleware.nsp as string[]).indexOf(name) >= 0);
+                  const nspFilter = middleware.nsp as string[];
+                  next(null, !nspFilter.length || nspFilter.indexOf(name) >= 0);
                 }
           )
           .use((socket: any, next: (err?: any) => any) => {
