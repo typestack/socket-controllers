@@ -71,13 +71,13 @@ export class SocketControllerExecutor {
       .sort((middleware1, middleware2) => (middleware1.priority || 0) - (middleware2.priority || 0))
       .forEach(middleware => {
         this.io
-          .of((name: string, auth: unknown, next: (err: Error | null, success: boolean) => void) => {
-            const filterNamespace = middleware.nsp;
-            const allowMiddleware =
-              (filterNamespace instanceof RegExp && filterNamespace.test(name)) ||
-              (filterNamespace as string[]).indexOf(name) >= 0;
-            next(null, allowMiddleware);
-          })
+          .of(
+            middleware.nsp instanceof RegExp
+              ? middleware.nsp
+              : (name: string, auth: unknown, next: (err: Error | null, success: boolean) => void) => {
+                  next(null, (middleware.nsp as string[]).indexOf(name) >= 0);
+                }
+          )
           .use((socket: any, next: (err?: any) => any) => {
             middleware.instance.use(socket, next);
           });
