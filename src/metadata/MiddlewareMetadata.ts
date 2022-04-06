@@ -8,7 +8,8 @@ export class MiddlewareMetadata {
   // -------------------------------------------------------------------------
 
   target: Function;
-  priority: number;
+  priority: number | undefined;
+  nsp: RegExp | string[];
 
   // -------------------------------------------------------------------------
   // Constructor
@@ -17,6 +18,7 @@ export class MiddlewareMetadata {
   constructor(args: MiddlewareMetadataArgs) {
     this.target = args.target;
     this.priority = args.priority;
+    this.nsp = args.nsp;
   }
 
   // -------------------------------------------------------------------------

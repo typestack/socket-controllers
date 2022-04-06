@@ -68,11 +68,19 @@ export class SocketControllerExecutor {
     const middlewares = this.metadataBuilder.buildMiddlewareMetadata(classes);
 
     middlewares
-      .sort((middleware1, middleware2) => middleware1.priority - middleware2.priority)
+      .sort((middleware1, middleware2) => (middleware1.priority || 0) - (middleware2.priority || 0))
       .forEach(middleware => {
-        this.io.use((socket: any, next: (err?: any) => any) => {
-          middleware.instance.use(socket, next);
-        });
+        this.io
+          .of((name: string, auth: unknown, next: (err: Error | null, success: boolean) => void) => {
+            const filterNamespace = middleware.nsp;
+            const allowMiddleware =
+              (filterNamespace instanceof RegExp && filterNamespace.test(name)) ||
+              (filterNamespace as string[]).indexOf(name) >= 0;
+            next(null, allowMiddleware);
+          })
+          .use((socket: any, next: (err?: any) => any) => {
+            middleware.instance.use(socket, next);
+          });
       });
 
     return this;

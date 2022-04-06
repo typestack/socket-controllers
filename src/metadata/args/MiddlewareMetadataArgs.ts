@@ -8,4 +8,9 @@ export interface MiddlewareMetadataArgs {
    * Middleware priority.
    */
   priority?: number;
+
+  /**
+   * Limits usage of the middleware to the given namespaces
+   */
+  nsp: RegExp | string[];
 }
