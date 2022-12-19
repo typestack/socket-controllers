@@ -1,6 +1,6 @@
 import { MetadataBuilder } from './metadata-builder/MetadataBuilder';
 import { ActionMetadata } from './metadata/ActionMetadata';
-import { classToPlain, ClassTransformOptions, plainToClass } from 'class-transformer';
+import { instanceToPlain, ClassTransformOptions, plainToInstance } from 'class-transformer';
 import { ActionTypes } from './metadata/types/ActionTypes';
 import { ParamMetadata } from './metadata/ParamMetadata';
 import { ParameterParseJsonError } from './error/ParameterParseJsonError';
@@ -20,19 +20,19 @@ export class SocketControllerExecutor {
    * Indicates if class-transformer package should be used to perform message body serialization / deserialization.
    * By default its enabled.
    */
-  useClassTransformer: boolean;
+  useClassTransformer?: boolean;
 
   /**
    * Global class transformer options passed to class-transformer during classToPlain operation.
    * This operation is being executed when server returns response to user.
    */
-  classToPlainTransformOptions: ClassTransformOptions;
+  classToPlainTransformOptions?: ClassTransformOptions;
 
   /**
-   * Global class transformer options passed to class-transformer during plainToClass operation.
+   * Global class transformer options passed to class-transformer during plainToInstance operation.
    * This operation is being executed when parsing user parameters.
    */
-  plainToClassTransformOptions: ClassTransformOptions;
+  plainToClassTransformOptions?: ClassTransformOptions;
 
   // -------------------------------------------------------------------------
   // Private properties
@@ -68,7 +68,7 @@ export class SocketControllerExecutor {
     const middlewares = this.metadataBuilder.buildMiddlewareMetadata(classes);
 
     middlewares
-      .sort((middleware1, middleware2) => middleware1.priority - middleware2.priority)
+      .sort((middleware1, middleware2) => (middleware1.priority || 0) - (middleware2.priority || 0))
       .forEach(middleware => {
         this.io.use((socket: any, next: (err?: any) => any) => {
           middleware.instance.use(socket, next);
@@ -91,8 +91,8 @@ export class SocketControllerExecutor {
 
     // register controllers with namespaces
     controllersWithNamespaces.forEach(controller => {
-      let namespace: string | RegExp = controller.namespace;
-      if (!(namespace instanceof RegExp)) {
+      let namespace: string | RegExp | undefined = controller.namespace;
+      if (namespace && !(namespace instanceof RegExp)) {
         namespace = pathToRegexp(namespace);
       }
       this.io.of(namespace).on('connection', (socket: any) => this.handleConnection([controller], socket));
@@ -103,7 +103,7 @@ export class SocketControllerExecutor {
 
   private handleConnection(controllers: ControllerMetadata[], socket: any) {
     controllers.forEach(controller => {
-      controller.actions.forEach(action => {
+      (controller.actions || []).forEach(action => {
         if (action.type === ActionTypes.CONNECT) {
           this.handleAction(action, { socket: socket })
             .then(result => this.handleSuccessResult(result, action, socket))
@@ -128,7 +128,7 @@ export class SocketControllerExecutor {
 
   private handleAction(action: ActionMetadata, options: { socket?: any; data?: any }): Promise<any> {
     // compute all parameters
-    const paramsPromises = action.params
+    const paramsPromises = (action.params || [])
       .sort((param1, param2) => param1.index - param2.index)
       .map(param => {
         if (param.type === ParamTypes.CONNECTED_SOCKET) {
@@ -203,7 +203,7 @@ export class SocketControllerExecutor {
       const parseValue = typeof value === 'string' ? JSON.parse(value) : value;
       if (paramMetadata.reflectedType !== Object && paramMetadata.reflectedType && this.useClassTransformer) {
         const options = paramMetadata.classTransformOptions || this.plainToClassTransformOptions;
-        return plainToClass(paramMetadata.reflectedType, parseValue, options);
+        return plainToInstance(paramMetadata.reflectedType as never, parseValue as never, options);
       } else {
         return parseValue;
       }
@@ -216,7 +216,7 @@ export class SocketControllerExecutor {
     if (result !== null && result !== undefined && action.emitOnSuccess) {
       const transformOptions = action.emitOnSuccess.classTransformOptions || this.classToPlainTransformOptions;
       const transformedResult =
-        this.useClassTransformer && result instanceof Object ? classToPlain(result, transformOptions) : result;
+        this.useClassTransformer && result instanceof Object ? instanceToPlain(result, transformOptions) : result;
       socket.emit(action.emitOnSuccess.value, transformedResult);
     } else if ((result === null || result === undefined) && action.emitOnSuccess && !action.skipEmitOnEmptyResult) {
       socket.emit(action.emitOnSuccess.value);
@@ -225,10 +225,10 @@ export class SocketControllerExecutor {
 
   private handleFailResult(result: any, action: ActionMetadata, socket: any) {
     if (result !== null && result !== undefined && action.emitOnFail) {
-      const transformOptions = action.emitOnSuccess.classTransformOptions || this.classToPlainTransformOptions;
+      const transformOptions = action.emitOnSuccess?.classTransformOptions || this.classToPlainTransformOptions;
       let transformedResult =
-        this.useClassTransformer && result instanceof Object ? classToPlain(result, transformOptions) : result;
-      if (result instanceof Error && !Object.keys(transformedResult).length) {
+        this.useClassTransformer && result instanceof Object ? instanceToPlain(result, transformOptions) : result;
+      if (result instanceof Error && !Object.keys(transformedResult as never).length) {
         transformedResult = result.toString();
       }
       socket.emit(action.emitOnFail.value, transformedResult);
@@ -239,8 +239,8 @@ export class SocketControllerExecutor {
 
   private handleNamespaceParams(socket: any, action: ActionMetadata, param: ParamMetadata): any[] {
     const keys: any[] = [];
-    const regexp = pathToRegexp(action.controllerMetadata.namespace, keys);
-    const parts: any[] = regexp.exec(socket.nsp.name);
+    const regexp = pathToRegexp(action.controllerMetadata.namespace || '/', keys);
+    const parts: any[] = regexp.exec(socket.nsp.name as string) || [];
     const params: any[] = [];
     keys.forEach((key: any, index: number) => {
       params[key.name] = this.handleParamFormat(parts[index + 1], param);

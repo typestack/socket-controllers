@@ -8,7 +8,7 @@ export class MiddlewareMetadata {
   // -------------------------------------------------------------------------
 
   target: Function;
-  priority: number;
+  priority?: number;
 
   // -------------------------------------------------------------------------
   // Constructor
