@@ -1,4 +1,4 @@
-import { createSocketServer, SocketController } from "../../src";
+import { createSocketServer, SocketController } from '../../src';
 import { testConnection } from '../utilities/testSocketConnection';
 
 describe('createSocketServer', () => {
