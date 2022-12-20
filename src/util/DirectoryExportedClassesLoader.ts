@@ -5,13 +5,13 @@ import * as glob from 'glob';
  * Loads all exported classes from the given directory.
  */
 export function importClassesFromDirectories(directories: string[], formats = ['.js', '.ts']): Function[] {
-  const loadFileClasses = function (exported: any, allLoaded: Function[]) {
+  const loadFileClasses = function (exported: Function | Record<string, Function> | Function[], allLoaded: Function[]) {
     if (exported instanceof Function) {
       allLoaded.push(exported);
-    } else if (exported instanceof Object) {
+    } else if (typeof exported === 'object' && !Array.isArray(exported)) {
       Object.keys(exported).forEach(key => loadFileClasses(exported[key], allLoaded));
-    } else if (exported instanceof Array) {
-      exported.forEach((i: any) => loadFileClasses(i, allLoaded));
+    } else if (Array.isArray(exported)) {
+      exported.forEach((i: Function | Record<string, Function> | Function[]) => loadFileClasses(i, allLoaded));
     }
 
     return allLoaded;

@@ -10,7 +10,7 @@ export class ControllerMetadata {
   /**
    * Controller actions.
    */
-  actions: ActionMetadata[];
+  actions?: ActionMetadata[];
 
   /**
    * Indicates object which is used by this controller.
@@ -20,7 +20,7 @@ export class ControllerMetadata {
   /**
    * Base route for all actions registered in this controller.
    */
-  namespace: string | RegExp;
+  namespace?: string | RegExp;
 
   // -------------------------------------------------------------------------
   // Constructor

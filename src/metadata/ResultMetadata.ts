@@ -26,9 +26,9 @@ export class ResultMetadata {
 
   /**
    */
-  value: any;
+  value?: any;
 
-  classTransformOptions: ClassTransformOptions;
+  classTransformOptions?: ClassTransformOptions;
 
   // -------------------------------------------------------------------------
   // Public Methods

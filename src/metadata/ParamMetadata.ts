@@ -36,7 +36,7 @@ export class ParamMetadata {
   /**
    * Extra parameter value.
    */
-  value: any;
+  value?: any;
 
   /**
    * Reflected type of the parameter.
@@ -46,12 +46,12 @@ export class ParamMetadata {
   /**
    * Transforms the value.
    */
-  transform: (value: any, socket: any) => Promise<any> | any;
+  transform?: (value: any, socket: any) => Promise<any> | any;
 
   /**
    * Class transform options used to perform plainToClass operation.
    */
-  classTransformOptions: ClassTransformOptions;
+  classTransformOptions?: ClassTransformOptions;
 
   // -------------------------------------------------------------------------
   // Public Methods
