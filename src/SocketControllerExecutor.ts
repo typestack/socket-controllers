@@ -7,6 +7,8 @@ import { ParameterParseJsonError } from './error/ParameterParseJsonError';
 import { ParamTypes } from './metadata/types/ParamTypes';
 import { ControllerMetadata } from './metadata/ControllerMetadata';
 import { pathToRegexp } from 'path-to-regexp';
+import { Namespace } from 'socket.io';
+import { MiddlewareMetadata } from './metadata/MiddlewareMetadata';
 
 /**
  * Registers controllers and actions in the given server framework.
@@ -66,16 +68,42 @@ export class SocketControllerExecutor {
    */
   private registerMiddlewares(classes?: Function[]): this {
     const middlewares = this.metadataBuilder.buildMiddlewareMetadata(classes);
+    middlewares.sort((middleware1, middleware2) => (middleware1.priority || 0) - (middleware2.priority || 0));
 
-    middlewares
-      .sort((middleware1, middleware2) => (middleware1.priority || 0) - (middleware2.priority || 0))
-      .forEach(middleware => {
-        this.io.use((socket: any, next: (err?: any) => any) => {
-          middleware.instance.use(socket, next);
+    const middlewaresWithoutNamespace = middlewares.filter(middleware => !middleware.namespace);
+    const middlewaresWithNamespace = middlewares.filter(middleware => !!middleware.namespace);
+
+    for (const middleware of middlewaresWithoutNamespace) {
+      this.registerMiddleware(this.io as Namespace, middleware);
+    }
+
+    this.io.on('new_namespace', (namespace: Namespace) => {
+      for (const middleware of middlewaresWithNamespace) {
+        const middlewareNamespaces = Array.isArray(middleware.namespace)
+          ? middleware.namespace
+          : [middleware.namespace];
+
+        const shouldApply = middlewareNamespaces.some(nsp => {
+          const nspRegexp = nsp instanceof RegExp ? nsp : pathToRegexp(nsp as string);
+          return nspRegexp.test(namespace.name);
         });
-      });
+
+        if (shouldApply) {
+          this.registerMiddleware(namespace, middleware);
+        }
+      }
+    });
 
     return this;
+  }
+
+  /**
+   * Registers middleware.
+   */
+  private registerMiddleware(namespace: Namespace, middleware: MiddlewareMetadata) {
+    namespace.use((socket: any, next: (err?: any) => any) => {
+      middleware.instance.use(socket, next);
+    });
   }
 
   /**

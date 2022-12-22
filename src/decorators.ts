@@ -226,11 +226,15 @@ export function SocketRooms() {
 /**
  * Registers a new middleware to be registered in the socket.io.
  */
-export function Middleware(options?: { priority?: number }): Function {
+export function Middleware(options?: {
+  priority?: number;
+  namespace?: string | RegExp | Array<RegExp | string>;
+}): Function {
   return function (object: Function) {
     const metadata: MiddlewareMetadataArgs = {
       target: object,
-      priority: options && options.priority ? options.priority : undefined,
+      priority: options?.priority,
+      namespace: options?.namespace,
     };
     defaultMetadataArgsStorage().middlewares.push(metadata);
   };
