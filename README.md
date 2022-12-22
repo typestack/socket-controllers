@@ -342,6 +342,20 @@ export class CompressionMiddleware implements MiddlewareInterface {
 }
 ```
 
+You can limit middlewares to namespaces providing either a `string`, `RegExp` or `Array<string | RegExp>` to the `namespace` parameter:
+
+```typescript
+import { Middleware, MiddlewareInterface } from 'socket-controllers';
+
+@Middleware({namespace: '/test'})
+export class CompressionMiddleware implements MiddlewareInterface {
+  use(socket: any, next: (err?: any) => any) {
+    console.log('do something, for example get authorization token and check authorization');
+    next();
+  }
+}
+```
+
 ## Don't forget to load your controllers and middlewares
 
 Controllers and middlewares should be loaded:
