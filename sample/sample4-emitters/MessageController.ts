@@ -1,15 +1,15 @@
-import {
-  OnConnect,
-  SocketController,
-  ConnectedSocket,
-  OnDisconnect,
-  MessageBody,
-  OnMessage,
-  EmitOnSuccess,
-  EmitOnFail,
-  SkipEmitOnEmptyResult,
-} from '../../src/decorators';
 import { Message } from './Message';
+import {
+  ConnectedSocket,
+  EmitOnFail,
+  EmitOnSuccess,
+  MessageBody,
+  OnConnect,
+  OnDisconnect,
+  OnMessage,
+  SkipEmitOnEmptyResult,
+  SocketController,
+} from '../../src';
 
 @SocketController()
 export class MessageController {

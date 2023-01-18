@@ -1,8 +1,11 @@
 import 'reflect-metadata';
-import { createSocketServer } from '../../src/index';
+import { SocketControllers } from '../../src/index';
 import { MessageController } from './MessageController';
+import { Container } from 'typedi';
 
-createSocketServer(3001, {
+new SocketControllers({
+  port: 3001,
+  container: Container,
   controllers: [MessageController],
 }); // creates socket.io server and registers all controllers there
 

@@ -1,13 +1,13 @@
-import {
-  OnConnect,
-  SocketController,
-  ConnectedSocket,
-  OnDisconnect,
-  MessageBody,
-  OnMessage,
-  NspParams,
-} from '../../src/decorators';
 import { Message } from './Message';
+import {
+  ConnectedSocket,
+  MessageBody,
+  NspParams,
+  OnConnect,
+  OnDisconnect,
+  OnMessage,
+  SocketController,
+} from '../../src';
 
 @SocketController('/messages/:id')
 export class MessageController {

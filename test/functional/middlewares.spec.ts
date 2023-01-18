@@ -1,18 +1,14 @@
 import { Server } from 'socket.io';
 import { Socket, io } from 'socket.io-client';
-import {
-  ConnectedSocket,
-  defaultMetadataArgsStorage,
-  Middleware,
-  MiddlewareInterface,
-  OnConnect,
-  SocketController,
-  useContainer,
-  useSocketServer,
-} from '../../src';
 import { Container, Service } from 'typedi';
 import { waitForEvent } from '../utilities/waitForEvent';
 import { createServer, Server as HttpServer } from 'http';
+import { Middleware } from '../../src/decorators/Middleware';
+import { MiddlewareInterface } from '../../src/types/MiddlewareInterface';
+import { SocketController } from '../../src/decorators/SocketController';
+import { OnConnect } from '../../src/decorators/OnConnect';
+import { ConnectedSocket } from '../../src/decorators/ConnectedSocket';
+import { SocketControllers } from '../../src/SocketControllers';
 
 describe('Middlewares', () => {
   const PORT = 8080;
@@ -22,6 +18,7 @@ describe('Middlewares', () => {
   let wsApp: Server;
   let wsClient: Socket;
   let testResult;
+  let socketControllers: SocketControllers;
 
   beforeEach(done => {
     httpServer = createServer();
@@ -33,7 +30,6 @@ describe('Middlewares', () => {
     httpServer.listen(PORT, () => {
       done();
     });
-    useContainer(Container);
   });
 
   afterEach(() => {
@@ -42,7 +38,7 @@ describe('Middlewares', () => {
     Container.reset();
     wsClient.close();
     wsClient = null;
-    defaultMetadataArgsStorage().reset();
+    socketControllers = null;
     return new Promise(resolve => {
       if (wsApp)
         return wsApp.close(() => {
@@ -71,7 +67,9 @@ describe('Middlewares', () => {
       }
     }
 
-    useSocketServer(wsApp, {
+    socketControllers = new SocketControllers({
+      io: wsApp,
+      container: Container,
       middlewares: [GlobalMiddleware],
       controllers: [Controller],
     });
@@ -101,7 +99,9 @@ describe('Middlewares', () => {
         }
       }
 
-      useSocketServer(wsApp, {
+      socketControllers = new SocketControllers({
+        io: wsApp,
+        container: Container,
         middlewares: [StringNamespaceMiddleware],
         controllers: [StringNamespaceController],
       });
@@ -130,7 +130,9 @@ describe('Middlewares', () => {
         }
       }
 
-      useSocketServer(wsApp, {
+      socketControllers = new SocketControllers({
+        io: wsApp,
+        container: Container,
         middlewares: [StringNamespaceMiddleware],
         controllers: [String2NamespaceController],
       });
@@ -161,7 +163,9 @@ describe('Middlewares', () => {
         }
       }
 
-      useSocketServer(wsApp, {
+      socketControllers = new SocketControllers({
+        io: wsApp,
+        container: Container,
         middlewares: [RegexpNamespaceMiddleware],
         controllers: [RegexpNamespaceController],
       });
@@ -190,7 +194,9 @@ describe('Middlewares', () => {
         }
       }
 
-      useSocketServer(wsApp, {
+      socketControllers = new SocketControllers({
+        io: wsApp,
+        container: Container,
         middlewares: [RegexpNamespaceMiddleware],
         controllers: [RegexpNamespaceController],
       });
@@ -221,7 +227,9 @@ describe('Middlewares', () => {
         }
       }
 
-      useSocketServer(wsApp, {
+      socketControllers = new SocketControllers({
+        io: wsApp,
+        container: Container,
         middlewares: [RegexpArrayNamespaceMiddleware],
         controllers: [RegexpNamespaceController],
       });
@@ -250,7 +258,9 @@ describe('Middlewares', () => {
         }
       }
 
-      useSocketServer(wsApp, {
+      socketControllers = new SocketControllers({
+        io: wsApp,
+        container: Container,
         middlewares: [RegexpArrayNamespaceMiddleware],
         controllers: [RegexpNamespaceController],
       });
