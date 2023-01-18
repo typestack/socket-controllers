@@ -25,6 +25,12 @@ Use class-based controllers to handle websocket events. Helps to organize your c
    ```typescript
    import 'reflect-metadata';
    ```
+   
+3. Install a DI container, for example `typedi`;
+   
+   ```
+   npm install typedi
+   ```
 
 ## Example of usage
 
@@ -39,8 +45,10 @@ Use class-based controllers to handle websocket events. Helps to organize your c
      MessageBody,
      OnMessage,
    } from 'socket-controllers';
+   import {Service} from 'typedi'; // Only if you are using typedi
 
    @SocketController()
+   @Service() // Only if you are using typedi
    export class MessageController {
      @OnConnect()
      connection(@ConnectedSocket() socket: any) {
@@ -67,10 +75,13 @@ Use class-based controllers to handle websocket events. Helps to organize your c
    ```typescript
    import 'es6-shim'; // this shim is optional if you are using old version of node
    import 'reflect-metadata'; // this shim is required
-   import { createSocketServer } from 'socket-controllers';
-   import { MessageController } from './MessageController';
+   import { SocketControllers } from 'socket-controllers';
+   import { MessageController } from './MessageController'; 
+   import {Container} from 'typedi'; // Only if you are using typedi
 
-   createSocketServer(3001, {
+   new SocketControllers({
+     port: 3001,
+     container: Container,
      controllers: [MessageController],
    });
    ```
@@ -135,7 +146,7 @@ export class MessageController {
 
 If you specify a class type to parameter that is decorated with `@MessageBody()`,
 socket-controllers will use [class-transformer][1] to create instance of the given class type with the data received in the message.
-To disable this behaviour you need to specify a `{ useConstructorUtils: false }` in SocketControllerOptions when creating a server.
+To disable this behaviour you need to specify a `{ transformOption: { transform: false ] }` in SocketControllerOptions when creating a server.
 
 #### `@SocketQueryParam()` decorator
 
@@ -266,16 +277,18 @@ If promise returned by controller action, message will be emitted only after pro
 #### Using exist server instead of creating a new one
 
 If you need to create and configure socket.io server manually,
-you can use `useSocketServer` instead of `createSocketServer` function.
+you can pass it to the `SocketControllers` constructor.
 Here is example of creating socket.io server and configuring it with express:
 
 ```typescript
 import 'reflect-metadata'; // this shim is required
-import { useSocketServer } from 'socket-controllers';
+import { SocketControllers } from 'socket-controllers';
+import { Server } from 'socket.io';
+import { Container } from 'typedi'; // Only if you are using typedi
 
 const app = require('express')();
 const server = require('http').Server(app);
-const io = require('socket.io')(server);
+const io = new Server(server);
 
 server.listen(3001);
 
@@ -287,7 +300,7 @@ io.use((socket: any, next: Function) => {
   console.log('Custom middleware');
   next();
 });
-useSocketServer(io);
+new SocketControllers({io, container: Container});
 ```
 
 #### Load all controllers from the given directory
@@ -297,9 +310,12 @@ You can load all controllers in once from specific directories, by specifying ar
 
 ```typescript
 import 'reflect-metadata'; // this shim is required
-import { createSocketServer } from 'socket-controllers';
+import { SocketControllers } from 'socket-controllers';
+import { Container } from 'typedi'; // Only if you are using typedi
 
-createSocketServer(3000, {
+new SocketControllers({
+  port: 3000,
+  container: Container, 
   controllers: [__dirname + '/controllers/*.js'],
 }); // registers all given controllers
 ```
@@ -362,10 +378,13 @@ Controllers and middlewares should be loaded:
 
 ```typescript
 import 'reflect-metadata';
-import { createSocketServer } from 'socket-controllers';
+import { SocketControllers } from 'socket-controllers';
 import { MessageController } from './MessageController';
 import { MyMiddleware } from './MyMiddleware'; // here we import it
-let io = createSocketServer(3000, {
+import { Container } from 'typedi'; // Only if you are using typedi
+const server = new SocketControllers({
+  port: 3000,
+  container: Container,
   controllers: [MessageController],
   middlewares: [MyMiddleware],
 });
@@ -375,10 +394,13 @@ Also you can load them from directories. Also you can use glob patterns:
 
 ```typescript
 import 'reflect-metadata';
-import { createSocketServer } from 'socket-controllers';
-let io = createSocketServer(3000, {
-  controllers: [__dirname + '/controllers/**/*.js'],
-  middlewares: [__dirname + '/middlewares/**/*.js'],
+import { SocketControllers } from 'socket-controllers';
+import { Container } from 'typedi'; // Only if you are using typedi
+const server = new SocketControllers({
+   port: 3000,
+   container: Container,
+   controllers: [__dirname + '/controllers/**/*.js'],
+   middlewares: [__dirname + '/middlewares/**/*.js'],
 });
 ```
 
@@ -390,15 +412,13 @@ Here is example how to integrate socket-controllers with [typedi](https://github
 
 ```typescript
 import 'reflect-metadata';
-import { createSocketServer, useContainer } from 'socket-controllers';
+import { SocketControllers } from 'socket-controllers';
 import { Container } from 'typedi';
 
-// its important to set container before any operation you do with socket-controllers,
-// including importing controllers
-useContainer(Container);
-
 // create and run socket server
-let io = createSocketServer(3000, {
+const server = new SocketControllers({
+  port: 3000,
+  container: Container,
   controllers: [__dirname + '/controllers/*.js'],
   middlewares: [__dirname + '/middlewares/*.js'],
 });

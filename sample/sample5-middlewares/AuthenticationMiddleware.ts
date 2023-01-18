@@ -1,5 +1,4 @@
-import { Middleware } from '../../src/decorators';
-import { MiddlewareInterface } from '../../src/MiddlewareInterface';
+import { Middleware, MiddlewareInterface } from '../../src';
 
 @Middleware()
 export class AuthenticationMiddleware implements MiddlewareInterface {
