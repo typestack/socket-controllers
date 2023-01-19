@@ -8,8 +8,6 @@ export interface SocketControllersOptions {
 
   port?: number;
 
-  ioHttpServer?: any;
-
   controllers?: Function[] | string[];
 
   middlewares?: Function[] | string[];
