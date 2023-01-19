@@ -117,8 +117,6 @@ _This changelog follows the [keep a changelog][keep-a-changelog]_ format to main
 - `socket.io` package updated from `2.0.1` to `4.5.4`
 - updated various dev dependencies
 
-### Breaking changes
-
 
 ### [0.0.5][v0.0.5] - 2020-02-04
 
