@@ -1,4 +1,6 @@
 export class Message {
-  id: number;
-  text: string;
+
+    id: number;
+    text: string;
+
 }
