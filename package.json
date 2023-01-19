@@ -1,64 +1,62 @@
 {
   "name": "socket-controllers",
-  "private": true,
-  "version": "0.0.5",
-  "description": "Use class-based controllers to handle websocket events",
+  "version": "0.1.0",
+  "description": "Use class-based controllers to handle websocket events.",
   "license": "MIT",
-  "readmeFilename": "README.md",
   "main": "index.js",
-  "keywords": [
-    "websocket",
-    "websockets",
-    "typescript",
-    "typescript-websocket",
-    "typescript-websockets",
-    "socket-controllers",
-    "socket.io",
-    "socket-server"
-  ],
   "author": {
-    "name": "Umed Khudoiberdiev",
-    "email": "pleerock.me@gmail.com"
+    "name": "TypeStack contributors"
   },
-  "contributors": [
-    {
-      "name": "Rustam Mamadaminov",
-      "email": "rmamdaminov@gmail.com"
-    }
-  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/pleerock/socket-controllers.git"
   },
-  "bugs": {
-    "url": "https://github.com/pleerock/socket-controllers/issues"
-  },
+  "keywords": [
+    "websocket",
+    "typescript",
+    "typescript-websocket",
+    "socket-controllers",
+    "socket.io",
+    "socket-server"
+  ],
   "scripts": {
-    "test": "gulp package",
-    "build": "gulp package"
+    "build": "rimraf build && tsc --project tsconfig.prod.json",
+    "prettier:fix": "prettier --write \"**/*.ts\"",
+    "prettier:check": "prettier --check \"**/*.ts\"",
+    "lint:fix": "eslint --max-warnings 0 --fix --ext .ts src/",
+    "lint:check": "eslint --max-warnings 0 --ext .ts src/",
+    "test": "jest --coverage --verbose",
+    "test:watch": "jest --watch",
+    "test:ci": "jest --runInBand --no-cache --coverage --verbose"
   },
   "dependencies": {
-    "class-transformer": "^0.1.6",
-    "path-to-regexp": "^3.0.0",
-    "reflect-metadata": "^0.1.10",
-    "socket.io": "^2.0.1"
+    "class-transformer": "^0.5.1",
+    "glob": "^8.0.3",
+    "path-to-regexp": "^6.2.1",
+    "reflect-metadata": "^0.1.13",
+    "socket.io": "^4.5.4"
   },
   "devDependencies": {
-    "@types/node": "^7.0.18",
-    "del": "^2.2.2",
-    "express": "^4.15.2",
-    "gulp": "^3.9.1",
-    "gulp-replace": "^0.5.4",
-    "gulp-shell": "^0.6.3",
-    "gulp-sourcemaps": "^2.6.0",
-    "gulp-tslint": "^8.0.0",
-    "gulp-typescript": "^3.1.6",
-    "gulpclass": "^0.1.2",
-    "socket.io-client": "^2.0.1",
-    "ts-node": "^3.0.4",
-    "tslint": "^5.2.0",
-    "tslint-stylish": "^2.1.0",
-    "typedi": "^0.5.2",
-    "typescript": "^2.3.2"
+    "@types/glob": "^8.0.0",
+    "@types/jest": "^29.2.4",
+    "@types/node": "^18.11.17",
+    "@types/path-to-regexp": "^1.7.0",
+    "@types/socket.io": "^3.0.2",
+    "@typescript-eslint/eslint-plugin": "^5.47.0",
+    "@typescript-eslint/parser": "^5.47.0",
+    "eslint": "^8.30.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-jest": "^27.1.7",
+    "express": "^4.18.2",
+    "husky": "^8.0.0",
+    "jest": "^29.3.1",
+    "lint-staged": "^13.1.0",
+    "prettier": "^2.8.1",
+    "rimraf": "3.0.2",
+    "socket.io-client": "^4.5.4",
+    "ts-jest": "^29.0.3",
+    "ts-node": "^10.9.1",
+    "typedi": "^0.10.0",
+    "typescript": "^4.9.4"
   }
 }

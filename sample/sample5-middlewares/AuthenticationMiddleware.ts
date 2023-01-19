@@ -1,12 +1,9 @@
-import {Middleware} from "../../src/decorators";
-import {MiddlewareInterface} from "../../src/MiddlewareInterface";
+import { Middleware, MiddlewareInterface } from '../../src';
 
 @Middleware()
 export class AuthenticationMiddleware implements MiddlewareInterface {
-
-    use(socket: any, next: ((err?: any) => any)): any {
-        console.log("authentication...");
-        next();
-    }
-
+  use(socket: any, next: (err?: any) => any): any {
+    console.log('authentication...');
+    next();
+  }
 }
