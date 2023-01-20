@@ -222,11 +222,24 @@ export class SocketControllers {
   }
 
   private handleActionResult(socket: Socket, action: ActionMetadata, result: any, resultType: ResultType) {
-    const onResultActions = action.results?.filter(result => result.type === resultType) || [];
+    const allOnResultActions = action.results?.filter(result => result.type === resultType) || [];
     const skipOnEmpty = action.results?.some(result => result.type === ResultType.SKIP_EMIT_ON_EMPTY_RESULT);
 
     if (result == null && skipOnEmpty) {
       return;
+    }
+
+    let onResultActions = allOnResultActions;
+    if (onResultActions.some(action => action.options.errorType)) {
+      const firstFittingAction = allOnResultActions.find(
+        action => action.options.errorType && result instanceof (action.options.errorType as Function)
+      );
+
+      if (!firstFittingAction) {
+        onResultActions = allOnResultActions.filter(action => !action.options.errorType);
+      } else {
+        onResultActions = [firstFittingAction];
+      }
     }
 
     for (const onResultAction of onResultActions) {
