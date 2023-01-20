@@ -132,10 +132,27 @@ export class SocketControllers {
       }
     });
 
+    const controllerNamespaceMap: Record<string, HandlerMetadata<unknown, ControllerMetadata>[]> = {};
+    const controllerNamespaceRegExpMap: Record<string, string | RegExp> = {};
+
     for (const controller of controllersWithNamespace) {
-      this.io.of(pathToRegexp(controller.metadata.namespace as string)).on('connection', (socket: Socket) => {
-        this.registerController(socket, controller);
-      });
+      const nsp = controller.metadata.namespace as string;
+      if (!controllerNamespaceMap[nsp]) {
+        controllerNamespaceMap[nsp] = [];
+      }
+      controllerNamespaceMap[nsp].push(controller);
+      controllerNamespaceRegExpMap[nsp] = nsp;
+    }
+
+    for (const [nsp, controllers] of Object.entries(controllerNamespaceMap)) {
+      const namespace = controllerNamespaceRegExpMap[nsp];
+      this.io
+        .of(namespace instanceof RegExp ? namespace : pathToRegexp(namespace))
+        .on('connection', (socket: Socket) => {
+          for (const controller of controllers) {
+            this.registerController(socket, controller);
+          }
+        });
     }
   }
 
