@@ -62,6 +62,16 @@ describe('MessageBody', () => {
         testResult = data;
         socket.emit('return');
       }
+
+      @OnMessage('test2')
+      test2(
+        @MessageBody({ index: 1 }) data1: any,
+        @MessageBody({ index: 0 }) data0: any,
+        @ConnectedSocket() socket: Socket
+      ) {
+        testResult = { data1, data0 };
+        socket.emit('return2');
+      }
     }
 
     socketControllers = new SocketControllers({
@@ -74,8 +84,13 @@ describe('MessageBody', () => {
     await waitForEvent(wsClient, 'connected');
 
     wsClient.emit('test', 'test data');
-
     await waitForEvent(wsClient, 'return');
     expect(testResult).toEqual('test data');
+
+    wsClient.emit('test2', 'test data 0', 'test data 1', 'test data 2', ack => {
+      console.log(ack);
+    });
+    await waitForEvent(wsClient, 'return2');
+    expect(testResult).toEqual({ data0: 'test data 0', data1: 'test data 1' });
   });
 });

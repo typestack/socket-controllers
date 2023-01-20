@@ -152,7 +152,22 @@ export class MessageController {
 
 If you specify a class type to parameter that is decorated with `@MessageBody()`,
 socket-controllers will use [class-transformer][1] to create instance of the given class type with the data received in the message.
-To disable this behaviour you need to specify a `{ transformOption: { transform: false ] }` in SocketControllerOptions when creating a server.
+To disable this behaviour you need to specify `{ transformOption: { transform: false ] }` in SocketControllerOptions when creating a server.
+
+You can define an index to get multiple parameters from the socket event.
+
+```typescript
+import { SocketController, OnMessage, MessageBody } from 'socket-controllers';
+
+@SocketController()
+export class MessageController {
+  @OnMessage('save')
+  save(@MessageBody({index: 0}) param1: any, @MessageBody({index: 1}) param2: any) {
+    console.log('received message: ', message1);
+    console.log('received message: ', message2);
+  }
+}
+```
 
 #### `@SocketQueryParam()` decorator
 
