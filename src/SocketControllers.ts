@@ -163,6 +163,9 @@ export class SocketControllers {
     const disconnectedAction = Object.values(controller.metadata.actions || {}).find(
       action => action.type === ActionType.DISCONNECT
     );
+    const disconnectingAction = Object.values(controller.metadata.actions || {}).find(
+      action => action.type === ActionType.DISCONNECTING
+    );
     const messageActions = Object.values(controller.metadata.actions || {}).filter(
       action => action.type === ActionType.MESSAGE
     );
@@ -174,6 +177,12 @@ export class SocketControllers {
     if (disconnectedAction) {
       socket.on('disconnect', () => {
         this.executeAction(socket, controller, disconnectedAction);
+      });
+    }
+
+    if (disconnectingAction) {
+      socket.on('disconnecting', () => {
+        this.executeAction(socket, controller, disconnectingAction);
       });
     }
 
