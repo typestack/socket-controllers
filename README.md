@@ -90,13 +90,14 @@ Use class-based controllers to handle websocket events. Helps to organize your c
 
 ## More usage examples
 
-#### Run code on socket client connect / disconnect
+#### Run code on socket client connect / disconnect / disconnecting
 
 Controller action marked with `@OnConnect()` decorator is called once new client connected.
 Controller action marked with `@OnDisconnect()` decorator is called once client disconnected.
+Controller action marked with `@OnDisconnecting()` decorator is called when the client is disconnecting, before the disconnect event.
 
 ```typescript
-import { SocketController, OnConnect, OnDisconnect } from 'socket-controllers';
+import { SocketController, OnConnect, OnDisconnect, OnDisconnecting } from 'socket-controllers';
 
 @SocketController()
 export class MessageController {
@@ -108,6 +109,11 @@ export class MessageController {
   @OnDisconnect()
   save() {
     console.log('client disconnected');
+  }
+
+  @OnDisconnecting()
+  save() {
+    console.log('client is disconnecting');
   }
 }
 ```
@@ -440,25 +446,26 @@ export class MessageController {
 
 ## Decorators Reference
 
-| Signature                                      | Description                                                                                                                                                                                                                                                                |
-| ---------------------------------------------- | -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `@SocketController(namespace?: string\|Regex)` | Registers a class to be a socket controller that can listen to websocket events and respond to them.                                                                                                                                                                       |
-| `@OnMessage(messageName: string)`              | Registers controller's action to be executed when socket receives message with given name.                                                                                                                                                                                 |
-| `@OnConnect()`                                 | Registers controller's action to be executed when client connects to the socket.                                                                                                                                                                                           |
-| `@OnDisconnect()`                              | Registers controller's action to be executed when client disconnects from the socket.                                                                                                                                                                                      |
-| `@ConnectedSocket()`                           | Injects connected client's socket object to the controller action.                                                                                                                                                                                                         |
-| `@SocketIO()`                                  | Injects socket.io object that initialized a connection.                                                                                                                                                                                                                    |
-| `@MessageBody()`                               | Injects received message body.                                                                                                                                                                                                                                             |
-| `@SocketQueryParam(paramName: string)`         | Injects query parameter from the received socket request.                                                                                                                                                                                                                  |
-| `@SocketId()`                                  | Injects socket id from the received request.                                                                                                                                                                                                                               |
-| `@SocketRequest()`                             | Injects request object received by socket.                                                                                                                                                                                                                                 |
-| `@SocketRooms()`                               | Injects rooms of the connected socket client.                                                                                                                                                                                                                              |
-| `@NspParams()`                                 | Injects dynamic namespace params.                                                                                                                                                                                                                                          |
-| `@NspParam(paramName: string)`                 | Injects param from the dynamic namespace.                                                                                                                                                                                                                                  |
-| `@Middleware()`                                | Registers a new middleware to be registered in the socket.io.                                                                                                                                                                                                              |
-| `@EmitOnSuccess(messageName: string)`          | If this decorator is set then after controller action will emit message with the given name after action execution. It will emit message only if controller succeed without errors. If result is a Promise then it will wait until promise is resolved and emit a message. |
-| `@EmitOnFail(messageName: string)`             | If this decorator is set then after controller action will emit message with the given name after action execution. It will emit message only if controller throw an exception. If result is a Promise then it will wait until promise throw an error and emit a message.  |
-| `@SkipEmitOnEmptyResult()`                     | Used in conjunction with @EmitOnSuccess and @EmitOnFail decorators. If result returned by controller action is null or undefined then messages will not be emitted by @EmitOnSuccess or @EmitOnFail decorators.                                                            |     |
+| Signature                              | Description                                                                                                                                                                                                                                                                |
+|----------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `@SocketController(namespace?: string\ | Regex)`                                                                                                                                                                                                                                                                    | Registers a class to be a socket controller that can listen to websocket events and respond to them.                                                                                                                                                                       |
+| `@OnMessage(messageName: string)`      | Registers controller's action to be executed when socket receives message with given name.                                                                                                                                                                                 |
+| `@OnConnect()`                         | Registers controller's action to be executed when client connects to the socket.                                                                                                                                                                                           |
+| `@OnDisconnect()`                      | Registers controller's action to be executed when client disconnects from the socket.                                                                                                                                                                                      |
+| `@OnDisconnecting()`                   | Registers controller's action to be executed when client is disconnecting from the socket.                                                                                                                                                                                 |
+| `@ConnectedSocket()`                   | Injects connected client's socket object to the controller action.                                                                                                                                                                                                         |
+| `@SocketIO()`                          | Injects socket.io object that initialized a connection.                                                                                                                                                                                                                    |
+| `@MessageBody()`                       | Injects received message body.                                                                                                                                                                                                                                             |
+| `@SocketQueryParam(paramName: string)` | Injects query parameter from the received socket request.                                                                                                                                                                                                                  |
+| `@SocketId()`                          | Injects socket id from the received request.                                                                                                                                                                                                                               |
+| `@SocketRequest()`                     | Injects request object received by socket.                                                                                                                                                                                                                                 |
+| `@SocketRooms()`                       | Injects rooms of the connected socket client.                                                                                                                                                                                                                              |
+| `@NspParams()`                         | Injects dynamic namespace params.                                                                                                                                                                                                                                          |
+| `@NspParam(paramName: string)`         | Injects param from the dynamic namespace.                                                                                                                                                                                                                                  |
+| `@Middleware()`                        | Registers a new middleware to be registered in the socket.io.                                                                                                                                                                                                              |
+| `@EmitOnSuccess(messageName: string)`  | If this decorator is set then after controller action will emit message with the given name after action execution. It will emit message only if controller succeed without errors. If result is a Promise then it will wait until promise is resolved and emit a message. |
+| `@EmitOnFail(messageName: string)`     | If this decorator is set then after controller action will emit message with the given name after action execution. It will emit message only if controller throw an exception. If result is a Promise then it will wait until promise throw an error and emit a message.  |
+| `@SkipEmitOnEmptyResult()`             | Used in conjunction with @EmitOnSuccess and @EmitOnFail decorators. If result returned by controller action is null or undefined then messages will not be emitted by @EmitOnSuccess or @EmitOnFail decorators.                                                            |     |
 
 ## Samples
 
