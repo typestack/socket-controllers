@@ -258,6 +258,8 @@ import { SocketController, OnMessage, EmitOnSuccess, EmitOnFail } from 'socket-c
 export class MessageController {
   @OnMessage('save')
   @EmitOnSuccess('save_successfully')
+  @EmitOnFail('save_error_range', {errorType: RangeError})
+  @EmitOnFail('save_error_type', {errorType: TypeError})
   @EmitOnFail('save_error')
   save() {
     if (1 === 1) {
@@ -272,6 +274,7 @@ export class MessageController {
 ```
 
 In this case `save_error` message will be sent to the client with `One is equal to one! Fatal error!` error message.
+The order is important when defining multiple `@EmitOnFail()` decorators, the first matching errorType will be served
 
 Sometimes you may want to not emit success/error message if returned result is null or undefined.
 In such cases you can use `@SkipEmitOnEmptyResult()` decorator.
