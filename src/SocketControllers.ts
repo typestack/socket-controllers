@@ -189,14 +189,13 @@ export class SocketControllers {
     for (const messageAction of messageActions) {
       socket.on(messageAction.options.name, (...args: any[]) => {
         const messages: any[] = args.slice(0, -1);
-        let ack: any = args[args.length - 1];
+        const ack: any = args[args.length - 1];
 
         if (!(ack instanceof Function)) {
           messages.push(ack);
-          ack = undefined;
         }
 
-        this.executeAction(socket, controller, messageAction, messages, ack as () => void);
+        this.executeAction(socket, controller, messageAction, messages);
       });
     }
   }
@@ -205,10 +204,9 @@ export class SocketControllers {
     socket: Socket,
     controller: HandlerMetadata<any, ControllerMetadata>,
     action: ActionMetadata,
-    data?: any[],
-    ack?: () => void
+    data?: any[]
   ) {
-    const parameters = this.resolveParameters(socket, controller.metadata, action.parameters || [], data, ack);
+    const parameters = this.resolveParameters(socket, controller.metadata, action.parameters || [], data);
     try {
       const actionResult = controller.instance[action.methodName](...parameters);
       Promise.resolve(actionResult)
@@ -250,8 +248,7 @@ export class SocketControllers {
     socket: Socket,
     controllerMetadata: ControllerMetadata,
     parameterMetadatas: ParameterMetadata[],
-    data?: any[],
-    ack?: () => void
+    data?: any[]
   ) {
     const parameters = [];
 
