@@ -187,8 +187,16 @@ export class SocketControllers {
     }
 
     for (const messageAction of messageActions) {
-      socket.on(messageAction.options.name, (message: any) => {
-        this.executeAction(socket, controller, messageAction, message);
+      socket.on(messageAction.options.name, (...args: any[]) => {
+        const messages: any[] = args.slice(0, -1);
+        let ack: any = args[args.length - 1];
+
+        if (!(ack instanceof Function)) {
+          messages.push(ack);
+          ack = undefined;
+        }
+
+        this.executeAction(socket, controller, messageAction, messages, ack as () => void);
       });
     }
   }
@@ -197,9 +205,10 @@ export class SocketControllers {
     socket: Socket,
     controller: HandlerMetadata<any, ControllerMetadata>,
     action: ActionMetadata,
-    data?: any
+    data?: any[],
+    ack?: () => void
   ) {
-    const parameters = this.resolveParameters(socket, controller.metadata, action.parameters || [], data);
+    const parameters = this.resolveParameters(socket, controller.metadata, action.parameters || [], data, ack);
     try {
       const actionResult = controller.instance[action.methodName](...parameters);
       Promise.resolve(actionResult)
@@ -241,7 +250,8 @@ export class SocketControllers {
     socket: Socket,
     controllerMetadata: ControllerMetadata,
     parameterMetadatas: ParameterMetadata[],
-    data: any
+    data?: any[],
+    ack?: () => void
   ) {
     const parameters = [];
 
@@ -258,7 +268,7 @@ export class SocketControllers {
     return parameters;
   }
 
-  private resolveParameter(socket: Socket, controller: ControllerMetadata, parameter: ParameterMetadata, data: any) {
+  private resolveParameter(socket: Socket, controller: ControllerMetadata, parameter: ParameterMetadata, data?: any[]) {
     switch (parameter.type) {
       case ParameterType.CONNECTED_SOCKET:
         return socket;
@@ -269,7 +279,7 @@ export class SocketControllers {
       case ParameterType.SOCKET_ROOMS:
         return socket.rooms;
       case ParameterType.MESSAGE_BODY:
-        return data;
+        return data?.[(parameter.options.index as number) || 0];
       case ParameterType.SOCKET_QUERY_PARAM:
         return socket.handshake.query[parameter.options.name as string];
       case ParameterType.SOCKET_REQUEST:
