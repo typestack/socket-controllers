@@ -2,6 +2,26 @@
 
 _This changelog follows the [keep a changelog][keep-a-changelog]_ format to maintain a human readable changelog.
 
+## [0.1.1](https://github.com/typestack/socket-controllers/compare/v0.1.0...v0.1.1) (2023-01-27)
+
+### Added
+
+- Added `@OnDisconnecting()` decorator
+- Added error type filter option to `@EmitOnFail()` decorator
+  
+  Example: `@EmitOnFail('message', {errorType: TypeError})`
+
+- Added `index` option to `@MessageBody()` decorator to be able to get multiple event arguments
+
+  Note: If you don't specify the index it will return the first
+
+- Added support to use the same namespace for multiple controllers
+
+  Note: The namespaces must match exactly, providing a differnet pattern will not work due to a socket.io limitation
+
+### Changed
+
+- `glob` package updated from `8.0.3` to `8.1.0`
 
 ## [0.1.0](https://github.com/typestack/socket-controllers/compare/v0.0.5...v0.1.0) (2023-01-18)
 
@@ -107,7 +127,7 @@ _This changelog follows the [keep a changelog][keep-a-changelog]_ format to main
 
 ### Added
 - Namespace scope support for middlewares
-- `transport: boolean` option to decorators that support class-transformer
+- `transform: boolean` option to decorators that support class-transformer
 
 ### Changed
 
