@@ -8,6 +8,7 @@ import { OnConnect } from '../../src/decorators/OnConnect';
 import { ConnectedSocket } from '../../src/decorators/ConnectedSocket';
 import { waitForEvent } from '../utilities/waitForEvent';
 import { EmitOnFail, OnMessage } from '../../src';
+import { waitForTime } from '../utilities/waitForTime';
 
 describe('EmitOnFail', () => {
   const PORT = 8080;
@@ -123,5 +124,84 @@ describe('EmitOnFail', () => {
     await waitForEvent(wsClient, 'fail');
     expect(errors[0]).toEqual('error string');
     expect(errors.length).toEqual(1);
+  });
+
+  it('Emit defined event on failing with specific error type', async () => {
+    @SocketController('/string')
+    @Service()
+    class TestController {
+      @OnConnect()
+      connected(@ConnectedSocket() socket: Socket) {
+        socket.emit('connected');
+      }
+
+      @OnMessage('request')
+      @EmitOnFail('fail1', { errorType: RangeError })
+      @EmitOnFail('fail2', { errorType: TypeError })
+      @EmitOnFail('fail3')
+      async testEvent() {
+        throw new RangeError('range error');
+      }
+
+      @OnMessage('request2')
+      @EmitOnFail('fail1', { errorType: RangeError })
+      @EmitOnFail('fail2', { errorType: TypeError })
+      @EmitOnFail('fail3')
+      async testEvent2() {
+        throw new TypeError('type error');
+      }
+
+      @OnMessage('request3')
+      @EmitOnFail('fail1', { errorType: RangeError })
+      @EmitOnFail('fail2', { errorType: TypeError })
+      @EmitOnFail('fail3')
+      async testEvent3() {
+        throw new Error('test error');
+      }
+
+      @OnMessage('request4')
+      @EmitOnFail('fail1', { errorType: Error })
+      @EmitOnFail('fail2', { errorType: TypeError })
+      @EmitOnFail('fail3')
+      async testEvent4() {
+        throw new TypeError('type error 2');
+      }
+    }
+
+    socketControllers = new SocketControllers({
+      io: wsApp,
+      container: Container,
+      controllers: [TestController],
+    });
+    wsClient = io(PATH_FOR_CLIENT + '/string', { reconnection: false, timeout: 5000, forceNew: true });
+
+    const errors = { fail1: [], fail2: [], fail3: [] };
+
+    wsClient.on('fail1', data => {
+      errors.fail1.push(data);
+    });
+
+    wsClient.on('fail2', data => {
+      errors.fail2.push(data);
+    });
+
+    wsClient.on('fail3', data => {
+      errors.fail3.push(data);
+    });
+
+    await waitForEvent(wsClient, 'connected');
+
+    wsClient.emit('request');
+    wsClient.emit('request2');
+    wsClient.emit('request3');
+    wsClient.emit('request4');
+
+    await waitForTime(1000);
+
+    expect(errors).toEqual({
+      fail1: ['range error', 'type error 2'],
+      fail2: ['type error'],
+      fail3: ['test error'],
+    });
   });
 });

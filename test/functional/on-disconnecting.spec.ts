@@ -7,16 +7,18 @@ import { SocketController } from '../../src/decorators/SocketController';
 import { OnConnect } from '../../src/decorators/OnConnect';
 import { ConnectedSocket } from '../../src/decorators/ConnectedSocket';
 import { waitForEvent } from '../utilities/waitForEvent';
-import { MessageBody, OnMessage, SocketId } from '../../src';
+import { OnDisconnect } from '../../src';
+import { waitForTime } from '../utilities/waitForTime';
+import { OnDisconnecting } from '../../src/decorators/OnDisconnecting';
 
-describe('MessageBody', () => {
+describe('OnDisconnecting', () => {
   const PORT = 8080;
   const PATH_FOR_CLIENT = `ws://localhost:${PORT}`;
 
   let httpServer: HttpServer;
   let wsApp: Server;
   let wsClient: Socket;
-  let testResult;
+  let testResult = [];
   let socketControllers: SocketControllers;
 
   beforeEach(done => {
@@ -32,7 +34,7 @@ describe('MessageBody', () => {
   });
 
   afterEach(() => {
-    testResult = undefined;
+    testResult = [];
 
     Container.reset();
     wsClient.close();
@@ -47,30 +49,23 @@ describe('MessageBody', () => {
     });
   });
 
-  it('Event body is retrieved correctly', async () => {
+  it('OnDisconnect is called correctly', async () => {
     @SocketController('/string')
     @Service()
     class TestController {
       @OnConnect()
-      connected(@ConnectedSocket() socket: Socket, @SocketId() socketId: string) {
-        testResult = socketId;
+      connected(@ConnectedSocket() socket: Socket) {
         socket.emit('connected');
       }
 
-      @OnMessage('test')
-      test(@MessageBody() data: any, @ConnectedSocket() socket: Socket) {
-        testResult = data;
-        socket.emit('return');
+      @OnDisconnect()
+      disconnected() {
+        testResult.push('disconnected');
       }
 
-      @OnMessage('test2')
-      test2(
-        @MessageBody({ index: 1 }) data1: any,
-        @MessageBody({ index: 0 }) data0: any,
-        @ConnectedSocket() socket: Socket
-      ) {
-        testResult = { data1, data0 };
-        socket.emit('return2');
+      @OnDisconnecting()
+      disconnecting() {
+        testResult.push('disconnecting');
       }
     }
 
@@ -82,15 +77,8 @@ describe('MessageBody', () => {
     wsClient = io(PATH_FOR_CLIENT + '/string', { reconnection: false, timeout: 5000, forceNew: true });
 
     await waitForEvent(wsClient, 'connected');
-
-    wsClient.emit('test', 'test data');
-    await waitForEvent(wsClient, 'return');
-    expect(testResult).toEqual('test data');
-
-    wsClient.emit('test2', 'test data 0', 'test data 1', 'test data 2', ack => {
-      console.log(ack);
-    });
-    await waitForEvent(wsClient, 'return2');
-    expect(testResult).toEqual({ data0: 'test data 0', data1: 'test data 1' });
+    wsClient.disconnect();
+    await waitForTime(1000);
+    expect(testResult).toEqual(['disconnecting', 'disconnected']);
   });
 });

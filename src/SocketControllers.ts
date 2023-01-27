@@ -132,10 +132,27 @@ export class SocketControllers {
       }
     });
 
+    const controllerNamespaceMap: Record<string, HandlerMetadata<unknown, ControllerMetadata>[]> = {};
+    const controllerNamespaceRegExpMap: Record<string, string | RegExp> = {};
+
     for (const controller of controllersWithNamespace) {
-      this.io.of(pathToRegexp(controller.metadata.namespace as string)).on('connection', (socket: Socket) => {
-        this.registerController(socket, controller);
-      });
+      const nsp = controller.metadata.namespace as string;
+      if (!controllerNamespaceMap[nsp]) {
+        controllerNamespaceMap[nsp] = [];
+      }
+      controllerNamespaceMap[nsp].push(controller);
+      controllerNamespaceRegExpMap[nsp] = nsp;
+    }
+
+    for (const [nsp, controllers] of Object.entries(controllerNamespaceMap)) {
+      const namespace = controllerNamespaceRegExpMap[nsp];
+      this.io
+        .of(namespace instanceof RegExp ? namespace : pathToRegexp(namespace))
+        .on('connection', (socket: Socket) => {
+          for (const controller of controllers) {
+            this.registerController(socket, controller);
+          }
+        });
     }
   }
 
@@ -145,6 +162,9 @@ export class SocketControllers {
     );
     const disconnectedAction = Object.values(controller.metadata.actions || {}).find(
       action => action.type === ActionType.DISCONNECT
+    );
+    const disconnectingAction = Object.values(controller.metadata.actions || {}).find(
+      action => action.type === ActionType.DISCONNECTING
     );
     const messageActions = Object.values(controller.metadata.actions || {}).filter(
       action => action.type === ActionType.MESSAGE
@@ -160,9 +180,22 @@ export class SocketControllers {
       });
     }
 
+    if (disconnectingAction) {
+      socket.on('disconnecting', () => {
+        this.executeAction(socket, controller, disconnectingAction);
+      });
+    }
+
     for (const messageAction of messageActions) {
-      socket.on(messageAction.options.name, (message: any) => {
-        this.executeAction(socket, controller, messageAction, message);
+      socket.on(messageAction.options.name, (...args: any[]) => {
+        const messages: any[] = args.slice(0, -1);
+        const ack: any = args[args.length - 1];
+
+        if (!(ack instanceof Function)) {
+          messages.push(ack);
+        }
+
+        this.executeAction(socket, controller, messageAction, messages);
       });
     }
   }
@@ -171,7 +204,7 @@ export class SocketControllers {
     socket: Socket,
     controller: HandlerMetadata<any, ControllerMetadata>,
     action: ActionMetadata,
-    data?: any
+    data?: any[]
   ) {
     const parameters = this.resolveParameters(socket, controller.metadata, action.parameters || [], data);
     try {
@@ -189,11 +222,24 @@ export class SocketControllers {
   }
 
   private handleActionResult(socket: Socket, action: ActionMetadata, result: any, resultType: ResultType) {
-    const onResultActions = action.results?.filter(result => result.type === resultType) || [];
+    const allOnResultActions = action.results?.filter(result => result.type === resultType) || [];
     const skipOnEmpty = action.results?.some(result => result.type === ResultType.SKIP_EMIT_ON_EMPTY_RESULT);
 
     if (result == null && skipOnEmpty) {
       return;
+    }
+
+    let onResultActions = allOnResultActions;
+    if (onResultActions.some(action => action.options.errorType)) {
+      const firstFittingAction = allOnResultActions.find(
+        action => action.options.errorType && result instanceof (action.options.errorType as Function)
+      );
+
+      if (!firstFittingAction) {
+        onResultActions = allOnResultActions.filter(action => !action.options.errorType);
+      } else {
+        onResultActions = [firstFittingAction];
+      }
     }
 
     for (const onResultAction of onResultActions) {
@@ -215,7 +261,7 @@ export class SocketControllers {
     socket: Socket,
     controllerMetadata: ControllerMetadata,
     parameterMetadatas: ParameterMetadata[],
-    data: any
+    data?: any[]
   ) {
     const parameters = [];
 
@@ -232,7 +278,7 @@ export class SocketControllers {
     return parameters;
   }
 
-  private resolveParameter(socket: Socket, controller: ControllerMetadata, parameter: ParameterMetadata, data: any) {
+  private resolveParameter(socket: Socket, controller: ControllerMetadata, parameter: ParameterMetadata, data?: any[]) {
     switch (parameter.type) {
       case ParameterType.CONNECTED_SOCKET:
         return socket;
@@ -243,7 +289,7 @@ export class SocketControllers {
       case ParameterType.SOCKET_ROOMS:
         return socket.rooms;
       case ParameterType.MESSAGE_BODY:
-        return data;
+        return data?.[(parameter.options.index as number) || 0];
       case ParameterType.SOCKET_QUERY_PARAM:
         return socket.handshake.query[parameter.options.name as string];
       case ParameterType.SOCKET_REQUEST:
