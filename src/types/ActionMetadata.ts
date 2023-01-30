@@ -1,9 +1,9 @@
 import { ParameterMetadata } from './ParameterMetadata';
 import { ResultMetadata } from './ResultMetadata';
-import { ActionType } from './enums/ActionType';
+import { SocketEventType } from './enums/SocketEventType';
 
 export interface ActionMetadata {
-  type: ActionType;
+  type: SocketEventType;
   methodName: string;
   options: any;
   parameters: ParameterMetadata[];

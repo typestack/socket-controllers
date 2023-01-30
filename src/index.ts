@@ -19,5 +19,6 @@ export * from './decorators/SocketRooms';
 export * from './types/MiddlewareInterface';
 export * from './types/TransformOptions';
 export * from './types/SocketControllersOptions';
+export * from './types/enums/SocketEventType';
 
 export * from './SocketControllers';

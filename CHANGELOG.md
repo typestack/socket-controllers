@@ -2,6 +2,24 @@
 
 _This changelog follows the [keep a changelog][keep-a-changelog]_ format to maintain a human readable changelog.
 
+## [0.1.2](https://github.com/typestack/socket-controllers/compare/v0.1.1...v0.1.2) (2023-01-30)
+
+### Added
+
+- Added scoped controller support
+
+  ```typescript
+  // create and run socket server
+  const server = new SocketControllers({
+    ...
+    scopedContainerGetter: (args: ScopedContainerGetterParams) => {
+      // Return a container instance to be used to instantiate 
+      // the controllers and their dependencies on each event
+    }
+  });
+  ```
+
+
 ## [0.1.1](https://github.com/typestack/socket-controllers/compare/v0.1.0...v0.1.1) (2023-01-27)
 
 ### Added
