@@ -462,6 +462,35 @@ export class MessageController {
 
 > Note: TypeDI won't create instances for unknown classes since 0.9.0, you have to decorate your Class as a `Service()` as well.
 
+### Scoped controllers
+
+You can enable scoped controllers by providing a `scopedContainerGetter` function in SocketServerOptions. This function should return a new container that will be used to instantiate the controller and its dependencies.
+
+You will get a new instance for each event in the controller.
+
+The `scopedContainerGetter` function receives a parameter which contains the socket, socket.io instance, event type, event name, namespace parameters and the message arguments if they are applicable.
+
+```typescript
+import 'reflect-metadata';
+import { SocketControllers, ScopedContainerGetterParams } from 'socket-controllers';
+import { Container, Token } from "typedi";
+
+const myDiToken = new Token();
+
+// create and run socket server
+const server = new SocketControllers({
+   port: 3000,
+   container: Container,
+   scopedContainerGetter: (args: ScopedContainerGetterParams) => {
+      const container = Container.of(YOUR_REQUEST_CONTEXT);
+      container.set(myDiToken, 'MY_VALUE');
+      return container;
+   },
+   controllers: [__dirname + '/controllers/*.js'],
+   middlewares: [__dirname + '/middlewares/*.js'],
+});
+```
+
 ## Decorators Reference
 
 | Signature                              | Description                                                                                                                                                                                                                                                                |
