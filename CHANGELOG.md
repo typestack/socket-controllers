@@ -2,7 +2,7 @@
 
 _This changelog follows the [keep a changelog][keep-a-changelog]_ format to maintain a human readable changelog.
 
-## [0.1.2](https://github.com/typestack/socket-controllers/compare/v0.1.1...v0.1.2) (2023-01-27)
+## [0.1.2](https://github.com/typestack/socket-controllers/compare/v0.1.1...v0.1.2) (2023-01-30)
 
 ### Added
 
