@@ -1,4 +1,4 @@
-export interface HandlerMetadata<T, U> {
-  instance: T;
-  metadata: U;
+export interface HandlerMetadata<T> {
+  metadata: T;
+  target: Function;
 }

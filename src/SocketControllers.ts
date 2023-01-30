@@ -8,7 +8,7 @@ import { HandlerType } from './types/enums/HandlerType';
 import { SocketControllersOptions } from './types/SocketControllersOptions';
 import { ControllerMetadata } from './types/ControllerMetadata';
 import { MiddlewareMetadata } from './types/MiddlewareMetadata';
-import { ActionType } from './types/enums/ActionType';
+import { SocketEventType } from './types/enums/SocketEventType';
 import { ActionMetadata } from './types/ActionMetadata';
 import { ParameterMetadata } from './types/ParameterMetadata';
 import { ParameterType } from './types/enums/ParameterType';
@@ -18,12 +18,13 @@ import { TransformOptions } from './types/TransformOptions';
 import { defaultTransformOptions } from './types/constants/defaultTransformOptions';
 import { ActionTransformOptions } from './types/ActionTransformOptions';
 import { instanceToPlain, plainToInstance } from 'class-transformer';
+import { ScopedContainerGetterParams } from './types/ScopedContainerGetterParams';
 import { MiddlewareInterface } from './types/MiddlewareInterface';
 
 export class SocketControllers {
   public container: { get<T>(someClass: { new (...args: any[]): T } | Function): T };
-  public controllers: HandlerMetadata<any, ControllerMetadata>[];
-  public middlewares: HandlerMetadata<MiddlewareInterface, MiddlewareMetadata>[];
+  public controllers: HandlerMetadata<ControllerMetadata>[];
+  public middlewares: HandlerMetadata<MiddlewareMetadata>[];
   public io: Server;
   public transformOptions: TransformOptions;
 
@@ -34,23 +35,14 @@ export class SocketControllers {
       ...defaultTransformOptions,
       ...options.transformOption,
     };
-    this.controllers = this.loadHandlers<Function, ControllerMetadata>(
-      options.controllers || [],
-      HandlerType.CONTROLLER
-    );
-    this.middlewares = this.loadHandlers<MiddlewareInterface, MiddlewareMetadata>(
-      options.middlewares || [],
-      HandlerType.MIDDLEWARE
-    );
+    this.controllers = this.loadHandlers<ControllerMetadata>(options.controllers || [], HandlerType.CONTROLLER);
+    this.middlewares = this.loadHandlers<MiddlewareMetadata>(options.middlewares || [], HandlerType.MIDDLEWARE);
 
     this.registerMiddlewares();
     this.registerControllers();
   }
 
-  private loadHandlers<T extends Object, U>(
-    handlers: Array<Function | string>,
-    type: HandlerType
-  ): HandlerMetadata<T, U>[] {
+  private loadHandlers<T extends Object>(handlers: Array<Function | string>, type: HandlerType): HandlerMetadata<T>[] {
     const loadedHandlers: Function[] = [];
 
     for (const handler of handlers) {
@@ -64,7 +56,7 @@ export class SocketControllers {
     return loadedHandlers.map(handler => {
       return {
         metadata: getMetadata(handler),
-        instance: this.container.get(handler),
+        target: handler,
       };
     });
   }
@@ -101,7 +93,7 @@ export class SocketControllers {
     const middlewaresWithNamespace = middlewares.filter(middleware => !!middleware.metadata.namespace);
 
     for (const middleware of middlewaresWithoutNamespace) {
-      this.registerMiddleware(this.io as unknown as Namespace, middleware.instance);
+      this.registerMiddleware(this.io as unknown as Namespace, middleware);
     }
 
     this.io.on('new_namespace', (namespace: Namespace) => {
@@ -116,7 +108,7 @@ export class SocketControllers {
         });
 
         if (shouldApply) {
-          this.registerMiddleware(namespace, middleware.instance);
+          this.registerMiddleware(namespace, middleware);
         }
       }
     });
@@ -132,7 +124,7 @@ export class SocketControllers {
       }
     });
 
-    const controllerNamespaceMap: Record<string, HandlerMetadata<unknown, ControllerMetadata>[]> = {};
+    const controllerNamespaceMap: Record<string, HandlerMetadata<ControllerMetadata>[]> = {};
     const controllerNamespaceRegExpMap: Record<string, string | RegExp> = {};
 
     for (const controller of controllersWithNamespace) {
@@ -156,18 +148,18 @@ export class SocketControllers {
     }
   }
 
-  private registerController(socket: Socket, controller: HandlerMetadata<any, ControllerMetadata>) {
+  private registerController(socket: Socket, controller: HandlerMetadata<ControllerMetadata>) {
     const connectedAction = Object.values(controller.metadata.actions || {}).find(
-      action => action.type === ActionType.CONNECT
+      action => action.type === SocketEventType.CONNECT
     );
     const disconnectedAction = Object.values(controller.metadata.actions || {}).find(
-      action => action.type === ActionType.DISCONNECT
+      action => action.type === SocketEventType.DISCONNECT
     );
     const disconnectingAction = Object.values(controller.metadata.actions || {}).find(
-      action => action.type === ActionType.DISCONNECTING
+      action => action.type === SocketEventType.DISCONNECTING
     );
     const messageActions = Object.values(controller.metadata.actions || {}).filter(
-      action => action.type === ActionType.MESSAGE
+      action => action.type === SocketEventType.MESSAGE
     );
 
     if (connectedAction) {
@@ -195,20 +187,29 @@ export class SocketControllers {
           messages.push(ack);
         }
 
-        this.executeAction(socket, controller, messageAction, messages);
+        this.executeAction(socket, controller, messageAction, messageAction.options.name as string, messages);
       });
     }
   }
 
   private executeAction(
     socket: Socket,
-    controller: HandlerMetadata<any, ControllerMetadata>,
+    controller: HandlerMetadata<ControllerMetadata>,
     action: ActionMetadata,
+    eventName?: string,
     data?: any[]
   ) {
     const parameters = this.resolveParameters(socket, controller.metadata, action.parameters || [], data);
     try {
-      const actionResult = controller.instance[action.methodName](...parameters);
+      let container = this.container;
+      if (this.options.scopedContainerGetter) {
+        container = this.options.scopedContainerGetter(
+          this.collectScopedContainerParams(socket, action.type, eventName, data, controller.metadata.namespace)
+        );
+      }
+
+      const controllerInstance: any = container.get(controller.target);
+      const actionResult = controllerInstance[action.methodName](...parameters);
       Promise.resolve(actionResult)
         .then(result => {
           this.handleActionResult(socket, action, result, ResultType.EMIT_ON_SUCCESS);
@@ -251,9 +252,10 @@ export class SocketControllers {
     }
   }
 
-  private registerMiddleware(namespace: Namespace, middleware: MiddlewareInterface) {
+  private registerMiddleware(namespace: Namespace, middleware: HandlerMetadata<MiddlewareMetadata>) {
     namespace.use((socket: Socket, next: (err?: any) => void) => {
-      middleware.use(socket, next);
+      const instance: MiddlewareInterface = this.container.get(middleware.target);
+      instance.use(socket, next);
     });
   }
 
@@ -334,10 +336,27 @@ export class SocketControllers {
     return value;
   }
 
+  private collectScopedContainerParams(
+    socket: Socket,
+    eventType: SocketEventType,
+    eventName?: string,
+    messageBody?: any[],
+    namespace?: string | RegExp
+  ): ScopedContainerGetterParams {
+    return {
+      eventType,
+      eventName,
+      socket,
+      socketIo: this.io,
+      nspParams: this.extractNamespaceParameters(socket, namespace),
+      messageArgs: messageBody,
+    };
+  }
+
   private extractNamespaceParameters(
     socket: Socket,
     namespace: string | RegExp | undefined,
-    parameterMetadata: ParameterMetadata
+    parameterMetadata?: ParameterMetadata
   ) {
     const keys: any[] = [];
     const regexp = namespace instanceof RegExp ? namespace : pathToRegexp(namespace || '/', keys);
