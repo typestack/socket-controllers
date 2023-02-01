@@ -9,6 +9,8 @@ export interface SocketControllersOptions {
     get<T>(someClass: { new (...args: any[]): T } | Function): T;
   };
 
+  scopedContainerDisposer?: (container: { get<T>(someClass: { new (...args: any[]): T } | Function): T }) => void;
+
   io?: Server;
 
   port?: number;
