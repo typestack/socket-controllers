@@ -2,7 +2,7 @@ import { createServer, Server as HttpServer } from 'http';
 import { Server } from 'socket.io';
 import { io, Socket } from 'socket.io-client';
 import { SocketControllers } from '../../src/SocketControllers';
-import { Container, ContainerInstance, Inject, Service, Token } from "typedi";
+import { Container, ContainerInstance, Inject, Service, Token } from 'typedi';
 import { SocketController } from '../../src/decorators/SocketController';
 import { OnConnect } from '../../src/decorators/OnConnect';
 import { ConnectedSocket } from '../../src/decorators/ConnectedSocket';
@@ -241,8 +241,8 @@ describe('Scoped controllers', () => {
         return container;
       },
       scopedContainerDisposer: (scopedContainer: ContainerInstance) => {
-        scopedContainer.reset({strategy: 'resetServices'});
-      }
+        scopedContainer.reset({ strategy: 'resetServices' });
+      },
     });
     wsClient = io(PATH_FOR_CLIENT + '/string', { reconnection: false, timeout: 5000, forceNew: true });
 
