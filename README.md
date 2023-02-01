@@ -470,10 +470,12 @@ You will get a new instance for each event in the controller.
 
 The `scopedContainerGetter` function receives a parameter which contains the socket, socket.io instance, event type, event name, namespace parameters and the message arguments if they are applicable.
 
+The `scopedContainerDisposer` function receives the container instance you created with `scopedContainerGetter` after the socket action is finished. Use this function to dispose the container if needed.
+
 ```typescript
 import 'reflect-metadata';
 import { SocketControllers, ScopedContainerGetterParams } from 'socket-controllers';
-import { Container, Token } from "typedi";
+import { Container, ContainerInstance, Token } from "typedi";
 
 const myDiToken = new Token();
 
@@ -485,6 +487,9 @@ const server = new SocketControllers({
       const container = Container.of(YOUR_REQUEST_CONTEXT);
       container.set(myDiToken, 'MY_VALUE');
       return container;
+   },
+   scopedContainerDisposer: (container: ContainerInstance) => {
+     container.dispose();
    },
    controllers: [__dirname + '/controllers/*.js'],
    middlewares: [__dirname + '/middlewares/*.js'],
