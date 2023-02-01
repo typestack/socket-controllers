@@ -163,18 +163,18 @@ export class SocketControllers {
     );
 
     if (connectedAction) {
-      this.executeAction(socket, controller, connectedAction);
+      void this.executeAction(socket, controller, connectedAction);
     }
 
     if (disconnectedAction) {
       socket.on('disconnect', () => {
-        this.executeAction(socket, controller, disconnectedAction);
+        void this.executeAction(socket, controller, disconnectedAction);
       });
     }
 
     if (disconnectingAction) {
       socket.on('disconnecting', () => {
-        this.executeAction(socket, controller, disconnectingAction);
+        void this.executeAction(socket, controller, disconnectingAction);
       });
     }
 
@@ -187,12 +187,12 @@ export class SocketControllers {
           messages.push(ack);
         }
 
-        this.executeAction(socket, controller, messageAction, messageAction.options.name as string, messages);
+        void this.executeAction(socket, controller, messageAction, messageAction.options.name as string, messages);
       });
     }
   }
 
-  private executeAction(
+  private async executeAction(
     socket: Socket,
     controller: HandlerMetadata<ControllerMetadata>,
     action: ActionMetadata,
@@ -200,25 +200,25 @@ export class SocketControllers {
     data?: any[]
   ) {
     const parameters = this.resolveParameters(socket, controller.metadata, action.parameters || [], data);
-    try {
-      let container = this.container;
-      if (this.options.scopedContainerGetter) {
-        container = this.options.scopedContainerGetter(
-          this.collectScopedContainerParams(socket, action.type, eventName, data, controller.metadata.namespace)
-        );
-      }
 
+    let container = this.container;
+    if (this.options.scopedContainerGetter) {
+      container = this.options.scopedContainerGetter(
+        this.collectScopedContainerParams(socket, action.type, eventName, data, controller.metadata.namespace)
+      );
+    }
+
+    try {
       const controllerInstance: any = container.get(controller.target);
       const actionResult = controllerInstance[action.methodName](...parameters);
-      Promise.resolve(actionResult)
-        .then(result => {
-          this.handleActionResult(socket, action, result, ResultType.EMIT_ON_SUCCESS);
-        })
-        .catch(error => {
-          this.handleActionResult(socket, action, error, ResultType.EMIT_ON_FAIL);
-        });
+      const result = await Promise.resolve(actionResult);
+      this.handleActionResult(socket, action, result, ResultType.EMIT_ON_SUCCESS);
     } catch (error: any) {
       this.handleActionResult(socket, action, error, ResultType.EMIT_ON_FAIL);
+    }
+
+    if (this.options.scopedContainerDisposer) {
+      this.options.scopedContainerDisposer(container);
     }
   }
 

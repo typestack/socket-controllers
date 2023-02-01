@@ -2,7 +2,7 @@ import { createServer, Server as HttpServer } from 'http';
 import { Server } from 'socket.io';
 import { io, Socket } from 'socket.io-client';
 import { SocketControllers } from '../../src/SocketControllers';
-import { Container, Inject, Service, Token } from 'typedi';
+import { Container, ContainerInstance, Inject, Service, Token } from 'typedi';
 import { SocketController } from '../../src/decorators/SocketController';
 import { OnConnect } from '../../src/decorators/OnConnect';
 import { ConnectedSocket } from '../../src/decorators/ConnectedSocket';
@@ -205,5 +205,53 @@ describe('Scoped controllers', () => {
     expect(testResult[1].eventName).toBe('test');
     expect(testResult[1].messageArgs).toEqual(['args1']);
     expect(testResult[1].nspParams).toEqual({ test: 'string' });
+  });
+
+  it('container should be disposed', async () => {
+    const token = new Token('ADDITIONAL');
+
+    @Service({ global: true })
+    class TestService {}
+
+    @SocketController('/string')
+    @Service()
+    class TestController {
+      constructor(private testService: TestService, @Inject(token) public myAdditional: number) {}
+
+      @OnConnect()
+      connected(@ConnectedSocket() socket: Socket) {
+        socket.emit('connected');
+      }
+
+      @OnMessage('test')
+      @EmitOnSuccess('done')
+      test() {
+        testResult.push(this.myAdditional);
+      }
+    }
+
+    let container;
+    socketControllers = new SocketControllers({
+      io: wsApp,
+      container: Container,
+      controllers: [TestController],
+      scopedContainerGetter: () => {
+        container = Container.of('test');
+        container.set(token, 'test');
+        return container;
+      },
+      scopedContainerDisposer: (scopedContainer: ContainerInstance) => {
+        scopedContainer.reset({ strategy: 'resetServices' });
+      },
+    });
+    wsClient = io(PATH_FOR_CLIENT + '/string', { reconnection: false, timeout: 5000, forceNew: true });
+
+    await waitForEvent(wsClient, 'connected');
+    wsClient.emit('test');
+    await waitForEvent(wsClient, 'done');
+
+    expect(Container.has(TestService)).toBe(true);
+    expect(container.has(token)).toBe(false);
+    expect(container.has(TestController)).toBe(false);
   });
 });
