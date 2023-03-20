@@ -50,6 +50,7 @@ describe('Load controllers from directory', () => {
       container: Container,
       controllers: [path.join(__dirname, './controllers/**.*')],
     });
+    await socketControllers.initialize();
     wsClient = io(PATH_FOR_CLIENT, { reconnection: false, timeout: 5000, forceNew: true });
 
     await waitForEvent(wsClient, 'connected');

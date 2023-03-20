@@ -69,6 +69,7 @@ describe('Multiple controllers with same namespace', () => {
       container: Container,
       controllers: [TestController, TestController2],
     });
+    await socketControllers.initialize();
     wsClient = io(PATH_FOR_CLIENT + '/string', { reconnection: false, timeout: 5000, forceNew: true });
 
     await waitForTime(100);

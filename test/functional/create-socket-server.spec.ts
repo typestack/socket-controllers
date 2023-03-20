@@ -20,12 +20,14 @@ describe('Create socket server', () => {
   it('should create socket server without options', async () => {
     expect.assertions(1);
     wsApp = new SocketControllers({ port: PORT, container: Container });
+    await wsApp.initialize();
     expect(await testConnection(PATH_FOR_CLIENT)).toEqual(0);
   });
 
   it('should create socket server with empty controllers array in options', async () => {
     expect.assertions(1);
     wsApp = new SocketControllers({ port: PORT, controllers: [], container: Container });
+    await wsApp.initialize();
     expect(await testConnection(PATH_FOR_CLIENT)).toEqual(0);
   });
 
@@ -37,6 +39,7 @@ describe('Create socket server', () => {
     class TestController {}
 
     wsApp = new SocketControllers({ port: PORT, container: Container, controllers: [TestController] });
+    await wsApp.initialize();
     expect(await testConnection(PATH_FOR_CLIENT)).toEqual(0);
   });
 });

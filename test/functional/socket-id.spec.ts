@@ -63,6 +63,7 @@ describe('SocketId', () => {
       container: Container,
       controllers: [TestController],
     });
+    await socketControllers.initialize();
     wsClient = io(PATH_FOR_CLIENT + '/string', { reconnection: false, timeout: 5000, forceNew: true });
 
     await waitForEvent(wsClient, 'connected');

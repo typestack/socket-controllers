@@ -77,6 +77,7 @@ describe('Scoped controllers', () => {
         return Container.of(Math.random().toString());
       },
     });
+    await socketControllers.initialize();
     wsClient = io(PATH_FOR_CLIENT + '/string', { reconnection: false, timeout: 5000, forceNew: true });
 
     await waitForEvent(wsClient, 'connected');
@@ -116,6 +117,7 @@ describe('Scoped controllers', () => {
         return Container.of(Math.random().toString());
       },
     });
+    await socketControllers.initialize();
     wsClient = io(PATH_FOR_CLIENT + '/string', { reconnection: false, timeout: 5000, forceNew: true });
 
     await waitForEvent(wsClient, 'connected');
@@ -161,6 +163,7 @@ describe('Scoped controllers', () => {
         return container;
       },
     });
+    await socketControllers.initialize();
     wsClient = io(PATH_FOR_CLIENT + '/string', { reconnection: false, timeout: 5000, forceNew: true });
 
     await waitForEvent(wsClient, 'connected');
@@ -194,6 +197,7 @@ describe('Scoped controllers', () => {
         return Container.of('');
       },
     });
+    await socketControllers.initialize();
     wsClient = io(PATH_FOR_CLIENT + '/string', { reconnection: false, timeout: 5000, forceNew: true });
 
     await waitForEvent(wsClient, 'connected');
@@ -244,6 +248,7 @@ describe('Scoped controllers', () => {
         scopedContainer.reset({ strategy: 'resetServices' });
       },
     });
+    await socketControllers.initialize();
     wsClient = io(PATH_FOR_CLIENT + '/string', { reconnection: false, timeout: 5000, forceNew: true });
 
     await waitForEvent(wsClient, 'connected');

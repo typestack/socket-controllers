@@ -50,6 +50,8 @@ export class SocketControllers {
 
     this.registerMiddlewares();
     this.registerControllers();
+
+    return this;
   }
 
   private async loadHandlers<T extends Object>(

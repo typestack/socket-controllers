@@ -70,6 +70,7 @@ describe('EmitOnFail', () => {
       container: Container,
       controllers: [TestController],
     });
+    await socketControllers.initialize();
     wsClient = io(PATH_FOR_CLIENT + '/string', { reconnection: false, timeout: 5000, forceNew: true });
 
     const errors = [];
@@ -109,6 +110,7 @@ describe('EmitOnFail', () => {
       container: Container,
       controllers: [TestController],
     });
+    await socketControllers.initialize();
     wsClient = io(PATH_FOR_CLIENT + '/string', { reconnection: false, timeout: 5000, forceNew: true });
 
     const errors = [];
@@ -173,6 +175,7 @@ describe('EmitOnFail', () => {
       container: Container,
       controllers: [TestController],
     });
+    await socketControllers.initialize();
     wsClient = io(PATH_FOR_CLIENT + '/string', { reconnection: false, timeout: 5000, forceNew: true });
 
     const errors = { fail1: [], fail2: [], fail3: [] };

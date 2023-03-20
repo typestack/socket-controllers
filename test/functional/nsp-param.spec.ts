@@ -63,6 +63,7 @@ describe('NspParam', () => {
       container: Container,
       controllers: [TestController],
     });
+    await socketControllers.initialize();
     wsClient = io(PATH_FOR_CLIENT + '/test1/test2', { reconnection: false, timeout: 5000, forceNew: true });
 
     await waitForEvent(wsClient, 'connected');

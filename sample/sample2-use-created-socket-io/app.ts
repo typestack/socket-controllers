@@ -21,10 +21,10 @@ io.use((socket: any, next: Function) => {
   next();
 });
 
-new SocketControllers({
+await new SocketControllers({
   io,
   container: Container,
   controllers: [MessageController],
-});
+}).initialize();
 
 console.log('Socket.io is up and running on port 3001. Send messages via socket-io client.');

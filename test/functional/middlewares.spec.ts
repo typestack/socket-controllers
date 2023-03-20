@@ -73,6 +73,7 @@ describe('Middlewares', () => {
       middlewares: [GlobalMiddleware],
       controllers: [Controller],
     });
+    await socketControllers.initialize();
     wsClient = io(PATH_FOR_CLIENT, { reconnection: false, timeout: 5000, forceNew: true });
 
     await waitForEvent(wsClient, 'connected');
@@ -105,6 +106,7 @@ describe('Middlewares', () => {
         middlewares: [StringNamespaceMiddleware],
         controllers: [StringNamespaceController],
       });
+      await socketControllers.initialize();
       wsClient = io(PATH_FOR_CLIENT + '/string', { reconnection: false, timeout: 5000, forceNew: true });
 
       await waitForEvent(wsClient, 'connected');
@@ -136,6 +138,7 @@ describe('Middlewares', () => {
         middlewares: [StringNamespaceMiddleware],
         controllers: [String2NamespaceController],
       });
+      await socketControllers.initialize();
       wsClient = io(PATH_FOR_CLIENT + '/string2', { reconnection: false, timeout: 5000, forceNew: true });
 
       await waitForEvent(wsClient, 'connected');
@@ -169,6 +172,7 @@ describe('Middlewares', () => {
         middlewares: [RegexpNamespaceMiddleware],
         controllers: [RegexpNamespaceController],
       });
+      await socketControllers.initialize();
       wsClient = io(PATH_FOR_CLIENT + '/dynamic-1', { reconnection: false, timeout: 5000, forceNew: true });
 
       await waitForEvent(wsClient, 'connected');
@@ -200,6 +204,7 @@ describe('Middlewares', () => {
         middlewares: [RegexpNamespaceMiddleware],
         controllers: [RegexpNamespaceController],
       });
+      await socketControllers.initialize();
       wsClient = io(PATH_FOR_CLIENT + '/dynamic-1', { reconnection: false, timeout: 5000, forceNew: true });
 
       await waitForEvent(wsClient, 'connected');
@@ -233,6 +238,7 @@ describe('Middlewares', () => {
         middlewares: [RegexpArrayNamespaceMiddleware],
         controllers: [RegexpNamespaceController],
       });
+      await socketControllers.initialize();
       wsClient = io(PATH_FOR_CLIENT + '/dynamic-1', { reconnection: false, timeout: 5000, forceNew: true });
 
       await waitForEvent(wsClient, 'connected');
@@ -264,6 +270,7 @@ describe('Middlewares', () => {
         middlewares: [RegexpArrayNamespaceMiddleware],
         controllers: [RegexpNamespaceController],
       });
+      await socketControllers.initialize();
       wsClient = io(PATH_FOR_CLIENT + '/dynamic-1', { reconnection: false, timeout: 5000, forceNew: true });
 
       await waitForEvent(wsClient, 'connected');
