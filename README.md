@@ -77,13 +77,13 @@ Use class-based controllers to handle websocket events. Helps to organize your c
    import 'reflect-metadata'; // this shim is required
    import { SocketControllers } from 'socket-controllers';
    import { MessageController } from './MessageController'; 
-   import {Container} from 'typedi'; // Only if you are using typedi
+   import { Container } from 'typedi'; // Only if you are using typedi
 
    new SocketControllers({
      port: 3001,
      container: Container,
      controllers: [MessageController],
-   });
+   }).initialize();
    ```
 
 3. Now you can send `save` websocket message using websocket-client.
@@ -309,9 +309,11 @@ import 'reflect-metadata'; // this shim is required
 import { SocketControllers } from 'socket-controllers';
 import { Server } from 'socket.io';
 import { Container } from 'typedi'; // Only if you are using typedi
+import express from 'express';
+import http from 'http'
 
-const app = require('express')();
-const server = require('http').Server(app);
+const app = express();
+const server = http.createServer(app);
 const io = new Server(server);
 
 server.listen(3001);
@@ -324,7 +326,7 @@ io.use((socket: any, next: Function) => {
   console.log('Custom middleware');
   next();
 });
-new SocketControllers({io, container: Container});
+new SocketControllers({io, container: Container}).initialize();
 ```
 
 #### Load all controllers from the given directory
@@ -341,7 +343,7 @@ new SocketControllers({
   port: 3000,
   container: Container, 
   controllers: [__dirname + '/controllers/*.js'],
-}); // registers all given controllers
+}).initialize(); // registers all given controllers
 ```
 
 #### Using socket.io namespaces
@@ -411,7 +413,7 @@ const server = new SocketControllers({
   container: Container,
   controllers: [MessageController],
   middlewares: [MyMiddleware],
-});
+}).initialize();
 ```
 
 Also you can load them from directories. Also you can use glob patterns:
@@ -425,7 +427,7 @@ const server = new SocketControllers({
    container: Container,
    controllers: [__dirname + '/controllers/**/*.js'],
    middlewares: [__dirname + '/middlewares/**/*.js'],
-});
+}).initialize();
 ```
 
 ## Using DI container
@@ -445,7 +447,7 @@ const server = new SocketControllers({
   container: Container,
   controllers: [__dirname + '/controllers/*.js'],
   middlewares: [__dirname + '/middlewares/*.js'],
-});
+}).initialize();
 ```
 
 That's it, now you can inject your services into your controllers:
@@ -493,7 +495,7 @@ const server = new SocketControllers({
    },
    controllers: [__dirname + '/controllers/*.js'],
    middlewares: [__dirname + '/middlewares/*.js'],
-});
+}).initialize();
 ```
 
 ## Decorators Reference

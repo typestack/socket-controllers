@@ -1,8 +1,9 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
-    "target": "es2018",
-    "lib": ["es2018"],
+    "module": "es2022",
+    "target": "es2022",
+    "lib": ["es2022"],
+    "moduleResolution": "node",
     "outDir": "build",
     "rootDir": "./src",
     "strict": true,

@@ -3,9 +3,11 @@ import { SocketControllers } from '../../src/index';
 import { MessageController } from './MessageController';
 import { Server } from 'socket.io';
 import { Container } from 'typedi';
+import express from 'express'
+import http from 'http'
 
-const app = require('express')();
-const server = require('http').Server(app);
+const app = express();
+const server = http.createServer(app);
 const io = new Server(server);
 
 server.listen(3001);

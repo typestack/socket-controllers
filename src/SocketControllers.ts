@@ -23,10 +23,12 @@ import { MiddlewareInterface } from './types/MiddlewareInterface';
 
 export class SocketControllers {
   public container: { get<T>(someClass: { new (...args: any[]): T } | Function): T };
-  public controllers: HandlerMetadata<ControllerMetadata>[];
-  public middlewares: HandlerMetadata<MiddlewareMetadata>[];
+  public controllers: HandlerMetadata<ControllerMetadata>[] = [];
+  public middlewares: HandlerMetadata<MiddlewareMetadata>[] = [];
   public io: Server;
   public transformOptions: TransformOptions;
+
+  #options: Pick<SocketControllersOptions, "controllers" | "middlewares"> = {}
 
   constructor(private options: SocketControllersOptions) {
     this.container = options.container;
@@ -35,23 +37,33 @@ export class SocketControllers {
       ...defaultTransformOptions,
       ...options.transformOption,
     };
-    this.controllers = this.loadHandlers<ControllerMetadata>(options.controllers || [], HandlerType.CONTROLLER);
-    this.middlewares = this.loadHandlers<MiddlewareMetadata>(options.middlewares || [], HandlerType.MIDDLEWARE);
+
+    this.#options.controllers = options.controllers
+    this.#options.middlewares = options.middlewares
+  }
+
+  async initialize() {
+    ([this.controllers, this.middlewares] = await Promise.all([
+      this.loadHandlers<ControllerMetadata>(this.#options.controllers || [], HandlerType.CONTROLLER),
+      this.loadHandlers<MiddlewareMetadata>(this.#options.middlewares || [], HandlerType.MIDDLEWARE)
+    ]));
 
     this.registerMiddlewares();
     this.registerControllers();
   }
 
-  private loadHandlers<T extends Object>(handlers: Array<Function | string>, type: HandlerType): HandlerMetadata<T>[] {
+  private async loadHandlers<T extends Object>(handlers: Array<Function | string>, type: HandlerType): Promise<HandlerMetadata<T>[]> {
     const loadedHandlers: Function[] = [];
 
-    for (const handler of handlers) {
-      if (typeof handler === 'string') {
-        loadedHandlers.push(...this.loadHandlersFromPath(handler, type));
-      } else {
-        loadedHandlers.push(handler);
-      }
-    }
+    await Promise.all(
+      handlers.map(async (handler) => {
+        if (typeof handler === 'string') {
+          loadedHandlers.push(...(await this.loadHandlersFromPath(handler, type)));
+        } else {
+          loadedHandlers.push(handler);
+        }
+      })
+    )
 
     return loadedHandlers.map(handler => {
       return {
@@ -61,27 +73,29 @@ export class SocketControllers {
     });
   }
 
-  private loadHandlersFromPath(path: string, handlerType: HandlerType): Function[] {
+  private async loadHandlersFromPath(path: string, handlerType: HandlerType): Promise<Function[]> {
     const files = sync(normalize(path).replace(/\\/g, '/'));
 
-    return files
-      .map(file => require(file))
-      .reduce((loadedFiles: Function[], loadedFile: Record<string, any>) => {
-        const handlersInFile = Object.values(loadedFile).filter(fileEntry => {
-          if (typeof fileEntry !== 'function') {
-            return false;
-          }
+    const importedFiles = await Promise.all(
+      files.map(file => import(file))
+    );
 
-          if (!(Reflect as any).hasMetadata(SOCKET_CONTROLLER_META_KEY, fileEntry as Function)) {
-            return false;
-          }
+    return importedFiles.reduce((loadedFiles: Function[], loadedFile: Record<string, any>) => {
+      const handlersInFile = Object.values(loadedFile).filter(fileEntry => {
+        if (typeof fileEntry !== 'function') {
+          return false;
+        }
 
-          return (Reflect as any).getMetadata(SOCKET_CONTROLLER_META_KEY, fileEntry as Function).type === handlerType;
-        });
-        loadedFiles.push(...(handlersInFile as Function[]));
+        if (!(Reflect as any).hasMetadata(SOCKET_CONTROLLER_META_KEY, fileEntry as Function)) {
+          return false;
+        }
 
-        return loadedFiles;
-      }, []);
+        return (Reflect as any).getMetadata(SOCKET_CONTROLLER_META_KEY, fileEntry as Function).type === handlerType;
+      });
+      loadedFiles.push(...(handlersInFile as Function[]));
+
+      return loadedFiles;
+    }, [])
   }
 
   private registerMiddlewares() {

@@ -4,6 +4,7 @@
   "description": "Use class-based controllers to handle websocket events.",
   "license": "MIT",
   "main": "index.js",
+  "type": "module",
   "author": {
     "name": "TypeStack contributors"
   },
