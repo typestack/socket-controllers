@@ -3,8 +3,8 @@ import { SocketControllers } from '../../src/index';
 import { MessageController } from './MessageController';
 import { Server } from 'socket.io';
 import { Container } from 'typedi';
-import express from 'express'
-import http from 'http'
+import express from 'express';
+import http from 'http';
 
 const app = express();
 const server = http.createServer(app);
@@ -20,6 +20,7 @@ io.use((socket: any, next: Function) => {
   console.log('Custom middleware');
   next();
 });
+
 new SocketControllers({
   io,
   container: Container,

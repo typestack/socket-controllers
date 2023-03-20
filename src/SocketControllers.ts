@@ -28,7 +28,7 @@ export class SocketControllers {
   public io: Server;
   public transformOptions: TransformOptions;
 
-  #options: Pick<SocketControllersOptions, "controllers" | "middlewares"> = {}
+  #options: Pick<SocketControllersOptions, 'controllers' | 'middlewares'> = {};
 
   constructor(private options: SocketControllersOptions) {
     this.container = options.container;
@@ -38,32 +38,35 @@ export class SocketControllers {
       ...options.transformOption,
     };
 
-    this.#options.controllers = options.controllers
-    this.#options.middlewares = options.middlewares
+    this.#options.controllers = options.controllers;
+    this.#options.middlewares = options.middlewares;
   }
 
   async initialize() {
-    ([this.controllers, this.middlewares] = await Promise.all([
+    [this.controllers, this.middlewares] = await Promise.all([
       this.loadHandlers<ControllerMetadata>(this.#options.controllers || [], HandlerType.CONTROLLER),
-      this.loadHandlers<MiddlewareMetadata>(this.#options.middlewares || [], HandlerType.MIDDLEWARE)
-    ]));
+      this.loadHandlers<MiddlewareMetadata>(this.#options.middlewares || [], HandlerType.MIDDLEWARE),
+    ]);
 
     this.registerMiddlewares();
     this.registerControllers();
   }
 
-  private async loadHandlers<T extends Object>(handlers: Array<Function | string>, type: HandlerType): Promise<HandlerMetadata<T>[]> {
+  private async loadHandlers<T extends Object>(
+    handlers: Array<Function | string>,
+    type: HandlerType
+  ): Promise<HandlerMetadata<T>[]> {
     const loadedHandlers: Function[] = [];
 
     await Promise.all(
-      handlers.map(async (handler) => {
+      handlers.map(async handler => {
         if (typeof handler === 'string') {
           loadedHandlers.push(...(await this.loadHandlersFromPath(handler, type)));
         } else {
           loadedHandlers.push(handler);
         }
       })
-    )
+    );
 
     return loadedHandlers.map(handler => {
       return {
@@ -76,9 +79,7 @@ export class SocketControllers {
   private async loadHandlersFromPath(path: string, handlerType: HandlerType): Promise<Function[]> {
     const files = sync(normalize(path).replace(/\\/g, '/'));
 
-    const importedFiles = await Promise.all(
-      files.map(file => import(file))
-    );
+    const importedFiles = await Promise.all(files.map(file => import(file)));
 
     return importedFiles.reduce((loadedFiles: Function[], loadedFile: Record<string, any>) => {
       const handlersInFile = Object.values(loadedFile).filter(fileEntry => {
@@ -95,7 +96,7 @@ export class SocketControllers {
       loadedFiles.push(...(handlersInFile as Function[]));
 
       return loadedFiles;
-    }, [])
+    }, []);
   }
 
   private registerMiddlewares() {
