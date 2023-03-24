@@ -169,6 +169,25 @@ export class MessageController {
 }
 ```
 
+#### `@MessageAck()` decorator
+
+To get received message ack use `@MessageAck()` decorator:
+
+```typescript
+import { SocketController, OnMessage, MessageAck, MessageBody } from 'socket-controllers';
+
+@SocketController()
+export class MessageController {
+  @OnMessage('save')
+  save(@MessageBody() message: any, @MessageAck() ack: Function) {
+    console.log('received message: ', message);
+    ack('callback message');
+  }
+}
+```
+
+> note: ack must be the last parameter in `emit`, otherwise it will be `null`
+
 #### `@SocketQueryParam()` decorator
 
 To get received query parameter use `@SocketQueryParam()` decorator.
