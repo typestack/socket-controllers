@@ -181,13 +181,14 @@ export class SocketControllers {
     for (const messageAction of messageActions) {
       socket.on(messageAction.options.name, (...args: any[]) => {
         const messages: any[] = args.slice(0, -1);
-        const ack: any = args[args.length - 1];
+        let ack: Function | null = args[args.length - 1];
 
         if (!(ack instanceof Function)) {
           messages.push(ack);
+          ack = null;
         }
 
-        void this.executeAction(socket, controller, messageAction, messageAction.options.name as string, messages);
+        void this.executeAction(socket, controller, messageAction, messageAction.options.name as string, messages, ack);
       });
     }
   }
@@ -197,9 +198,10 @@ export class SocketControllers {
     controller: HandlerMetadata<ControllerMetadata>,
     action: ActionMetadata,
     eventName?: string,
-    data?: any[]
+    data?: any[],
+    ack?: Function | null
   ) {
-    const parameters = this.resolveParameters(socket, controller.metadata, action.parameters || [], data);
+    const parameters = this.resolveParameters(socket, controller.metadata, action.parameters || [], data, ack);
 
     let container = this.container;
     if (this.options.scopedContainerGetter) {
@@ -263,12 +265,13 @@ export class SocketControllers {
     socket: Socket,
     controllerMetadata: ControllerMetadata,
     parameterMetadatas: ParameterMetadata[],
-    data?: any[]
+    data?: any[],
+    ack?: Function | null
   ) {
     const parameters = [];
 
     for (const metadata of parameterMetadatas) {
-      const parameterValue = this.resolveParameter(socket, controllerMetadata, metadata, data) as never;
+      const parameterValue = this.resolveParameter(socket, controllerMetadata, metadata, data, ack) as never;
       parameters[metadata.index] = this.transformActionValue(
         parameterValue,
         metadata.reflectedType as never,
@@ -280,7 +283,13 @@ export class SocketControllers {
     return parameters;
   }
 
-  private resolveParameter(socket: Socket, controller: ControllerMetadata, parameter: ParameterMetadata, data?: any[]) {
+  private resolveParameter(
+    socket: Socket,
+    controller: ControllerMetadata,
+    parameter: ParameterMetadata,
+    data?: any[],
+    ack?: Function | null
+  ) {
     switch (parameter.type) {
       case ParameterType.CONNECTED_SOCKET:
         return socket;
@@ -292,6 +301,8 @@ export class SocketControllers {
         return socket.rooms;
       case ParameterType.MESSAGE_BODY:
         return data?.[(parameter.options.index as number) || 0];
+      case ParameterType.MESSAGE_ACK:
+        return ack;
       case ParameterType.SOCKET_QUERY_PARAM:
         return socket.handshake.query[parameter.options.name as string];
       case ParameterType.SOCKET_REQUEST:

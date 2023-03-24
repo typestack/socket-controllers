@@ -2,6 +2,7 @@ export * from './decorators/ConnectedSocket';
 export * from './decorators/EmitOnFail';
 export * from './decorators/EmitOnSuccess';
 export * from './decorators/MessageBody';
+export * from './decorators/MessageAck';
 export * from './decorators/Middleware';
 export * from './decorators/NspParam';
 export * from './decorators/NspParams';
