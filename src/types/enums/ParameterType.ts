@@ -2,6 +2,7 @@ export enum ParameterType {
   CUSTOM,
   CONNECTED_SOCKET,
   MESSAGE_BODY,
+  MESSAGE_ACK,
   SOCKET_QUERY_PARAM,
   SOCKET_IO,
   SOCKET_ID,
