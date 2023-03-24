@@ -199,7 +199,7 @@ export class SocketControllers {
     action: ActionMetadata,
     eventName?: string,
     data?: any[],
-    ack?: Function
+    ack?: Function | null
   ) {
     const parameters = this.resolveParameters(socket, controller.metadata, action.parameters || [], data, ack);
 
@@ -266,7 +266,7 @@ export class SocketControllers {
     controllerMetadata: ControllerMetadata,
     parameterMetadatas: ParameterMetadata[],
     data?: any[],
-    ack?: Function
+    ack?: Function | null
   ) {
     const parameters = [];
 
@@ -288,7 +288,7 @@ export class SocketControllers {
     controller: ControllerMetadata,
     parameter: ParameterMetadata,
     data?: any[],
-    ack?: Function
+    ack?: Function | null
   ) {
     switch (parameter.type) {
       case ParameterType.CONNECTED_SOCKET:
