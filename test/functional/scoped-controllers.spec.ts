@@ -7,8 +7,7 @@ import { SocketController } from '../../src/decorators/SocketController';
 import { OnConnect } from '../../src/decorators/OnConnect';
 import { ConnectedSocket } from '../../src/decorators/ConnectedSocket';
 import { waitForEvent } from '../utilities/waitForEvent';
-import { EmitOnSuccess, OnMessage } from '../../src';
-import { ScopedContainerGetterParams } from '../../src/types/ScopedContainerGetterParams';
+import { EmitOnSuccess, OnMessage, SocketEventContext } from '../../src';
 
 describe('Scoped controllers', () => {
   const PORT = 8080;
@@ -73,7 +72,7 @@ describe('Scoped controllers', () => {
       io: wsApp,
       container: Container,
       controllers: [TestController],
-      scopedContainerGetter: (args: ScopedContainerGetterParams) => {
+      scopedContainerGetter: (args: SocketEventContext) => {
         return Container.of(Math.random().toString());
       },
     });
@@ -112,7 +111,7 @@ describe('Scoped controllers', () => {
       io: wsApp,
       container: Container,
       controllers: [TestController],
-      scopedContainerGetter: (args: ScopedContainerGetterParams) => {
+      scopedContainerGetter: (args: SocketEventContext) => {
         return Container.of(Math.random().toString());
       },
     });
@@ -154,7 +153,7 @@ describe('Scoped controllers', () => {
       io: wsApp,
       container: Container,
       controllers: [TestController],
-      scopedContainerGetter: (args: ScopedContainerGetterParams) => {
+      scopedContainerGetter: (args: SocketEventContext) => {
         const container = Container.of(counter.toString());
         container.set(token, counter);
         counter++;
@@ -189,7 +188,7 @@ describe('Scoped controllers', () => {
       io: wsApp,
       container: Container,
       controllers: [TestController],
-      scopedContainerGetter: (args: ScopedContainerGetterParams) => {
+      scopedContainerGetter: (args: SocketEventContext) => {
         testResult.push(args);
         return Container.of('');
       },

@@ -18,8 +18,10 @@ export * from './decorators/SocketRequest';
 export * from './decorators/SocketRooms';
 
 export * from './types/MiddlewareInterface';
+export * from './types/InterceptorInterface';
 export * from './types/TransformOptions';
 export * from './types/SocketControllersOptions';
 export * from './types/enums/SocketEventType';
+export * from './types/SocketEventContext';
 
 export * from './SocketControllers';

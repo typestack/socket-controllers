@@ -18,8 +18,10 @@ import { TransformOptions } from './types/TransformOptions';
 import { defaultTransformOptions } from './types/constants/defaultTransformOptions';
 import { ActionTransformOptions } from './types/ActionTransformOptions';
 import { instanceToPlain, plainToInstance } from 'class-transformer';
-import { ScopedContainerGetterParams } from './types/ScopedContainerGetterParams';
 import { MiddlewareInterface } from './types/MiddlewareInterface';
+import { InterceptorInterface } from './types/InterceptorInterface';
+import { chainExecute } from './util/chain-execute';
+import { SocketEventContext } from './types/SocketEventContext';
 
 export class SocketControllers {
   public container: { get<T>(someClass: { new (...args: any[]): T } | Function): T };
@@ -201,18 +203,44 @@ export class SocketControllers {
     data?: any[],
     ack?: Function | null
   ) {
-    const parameters = this.resolveParameters(socket, controller.metadata, action.parameters || [], data, ack);
+    const eventContext = this.resolveEventContext(
+      socket,
+      action.type,
+      eventName,
+      data,
+      controller.metadata.namespace,
+      ack
+    );
 
     let container = this.container;
     if (this.options.scopedContainerGetter) {
-      container = this.options.scopedContainerGetter(
-        this.collectScopedContainerParams(socket, action.type, eventName, data, controller.metadata.namespace)
-      );
+      container = this.options.scopedContainerGetter(eventContext);
     }
 
     try {
       const controllerInstance: any = container.get(controller.target);
-      const actionResult = controllerInstance[action.methodName](...parameters);
+
+      const actions = [
+        ...(action.interceptors || []).map(interceptor => {
+          return (
+            ((interceptor as any) instanceof Function
+              ? container.get(interceptor)
+              : interceptor) as InterceptorInterface
+          ).use.bind(interceptor);
+        }),
+        (context: SocketEventContext) => {
+          const parameters = this.resolveParameters(
+            socket,
+            controller.metadata,
+            action.parameters || [],
+            context.messageArgs,
+            ack
+          );
+          return controllerInstance[action.methodName](...parameters);
+        },
+      ];
+
+      const actionResult = chainExecute(eventContext, actions);
       const result = await Promise.resolve(actionResult);
       this.handleActionResult(socket, action, result, ResultType.EMIT_ON_SUCCESS);
     } catch (error: any) {
@@ -347,13 +375,14 @@ export class SocketControllers {
     return value;
   }
 
-  private collectScopedContainerParams(
+  private resolveEventContext(
     socket: Socket,
     eventType: SocketEventType,
     eventName?: string,
     messageBody?: any[],
-    namespace?: string | RegExp
-  ): ScopedContainerGetterParams {
+    namespace?: string | RegExp,
+    ack?: Function | null
+  ): SocketEventContext {
     return {
       eventType,
       eventName,
@@ -361,6 +390,7 @@ export class SocketControllers {
       socketIo: this.io,
       nspParams: this.extractNamespaceParameters(socket, namespace),
       messageArgs: messageBody,
+      ack,
     };
   }
 

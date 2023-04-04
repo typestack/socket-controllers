@@ -1,11 +1,11 @@
 import { Server } from 'socket.io';
 import { TransformOptions } from './TransformOptions';
-import { ScopedContainerGetterParams } from './ScopedContainerGetterParams';
+import { SocketEventContext } from './SocketEventContext';
 
 export interface SocketControllersOptions {
   container: { get<T>(someClass: { new (...args: any[]): T } | Function): T };
 
-  scopedContainerGetter?: (params: ScopedContainerGetterParams) => {
+  scopedContainerGetter?: (context: SocketEventContext) => {
     get<T>(someClass: { new (...args: any[]): T } | Function): T;
   };
 
