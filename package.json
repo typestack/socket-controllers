@@ -1,6 +1,6 @@
 {
   "name": "socket-controllers",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Use class-based controllers to handle websocket events.",
   "license": "MIT",
   "main": "index.js",
