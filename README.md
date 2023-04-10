@@ -169,6 +169,25 @@ export class MessageController {
 }
 ```
 
+#### `@MessageAck()` decorator
+
+To get received message ack use `@MessageAck()` decorator:
+
+```typescript
+import { SocketController, OnMessage, MessageAck, MessageBody } from 'socket-controllers';
+
+@SocketController()
+export class MessageController {
+  @OnMessage('save')
+  save(@MessageBody() message: any, @MessageAck() ack: Function) {
+    console.log('received message: ', message);
+    ack('callback message');
+  }
+}
+```
+
+> note: ack must be the last parameter in `emit`, otherwise it will be `null`
+
 #### `@SocketQueryParam()` decorator
 
 To get received query parameter use `@SocketQueryParam()` decorator.
@@ -468,12 +487,14 @@ You can enable scoped controllers by providing a `scopedContainerGetter` functio
 
 You will get a new instance for each event in the controller.
 
-The `scopedContainerGetter` function receives a parameter which contains the socket, socket.io instance, event type, event name, namespace parameters and the message arguments if they are applicable.
+The `scopedContainerGetter` function receives the `SocketEventContext`.
+
+The `scopedContainerDisposer` function receives the container instance you created with `scopedContainerGetter` after the socket action is finished. Use this function to dispose the container if needed.
 
 ```typescript
 import 'reflect-metadata';
-import { SocketControllers, ScopedContainerGetterParams } from 'socket-controllers';
-import { Container, Token } from "typedi";
+import { SocketControllers, SocketEventContext } from 'socket-controllers';
+import { Container, ContainerInstance, Token } from "typedi";
 
 const myDiToken = new Token();
 
@@ -481,15 +502,68 @@ const myDiToken = new Token();
 const server = new SocketControllers({
    port: 3000,
    container: Container,
-   scopedContainerGetter: (args: ScopedContainerGetterParams) => {
+   scopedContainerGetter: (args: SocketEventContext) => {
       const container = Container.of(YOUR_REQUEST_CONTEXT);
       container.set(myDiToken, 'MY_VALUE');
       return container;
+   },
+   scopedContainerDisposer: (container: ContainerInstance) => {
+     container.dispose();
    },
    controllers: [__dirname + '/controllers/*.js'],
    middlewares: [__dirname + '/middlewares/*.js'],
 });
 ```
+
+## Interceptors
+
+Interceptors allow you to wrap your event handlers in higher order functions.
+With interceptors you can add logging or modify the incoming or outgoing data for event handlers.
+
+```typescript
+import {
+   SocketController,
+   OnMessage,
+   EmitOnSuccess,
+   EmitOnFail,
+   SkipEmitOnEmptyResult,
+   UseInterceptor,
+   MessageBody
+} from 'socket-controllers';
+
+const interceptor: InterceptorInterface = {
+   use: (ctx: SocketEventContext, next: () => any) => {
+     ctx.messageArgs[0] = 'modified message from controller - ' + ctx.messageArgs[0];
+     const resp = next();
+     return 'modified response from controller - ' + resp; // modified response from controller - modified response from method - reponse
+   },
+};
+
+@Service()
+class Interceptor implements InterceptorInterface {
+   async use(ctx: SocketEventContext, next: () => any) {
+     ctx.messageArgs[0] = 'modified message from method - ' + ctx.messageArgs[0];
+     const resp = await next();
+     return 'modified response from method - ' + resp; // modified response from method - reponse
+   }
+}
+
+@SocketController()
+@UseInterceptor(interceptor)
+export class MessageController {
+   @OnMessage('get')
+   @EmitOnSuccess('get_success')
+   @SkipEmitOnEmptyResult()
+   @UseInterceptor(Interceptor)
+   get(@MessageBody() message: string): Promise<Message[]> {
+     console.log(message); // modified message from controller - modified message from method - original message
+     return 'response';
+   }
+}
+```
+
+Interceptors are executed in order of definition, starting with the controller interceptors.
+
 
 ## Decorators Reference
 

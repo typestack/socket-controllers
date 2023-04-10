@@ -8,4 +8,5 @@ export interface ActionMetadata {
   options: any;
   parameters: ParameterMetadata[];
   results: ResultMetadata[];
+  interceptors: Function[];
 }

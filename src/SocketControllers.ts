@@ -18,8 +18,10 @@ import { TransformOptions } from './types/TransformOptions';
 import { defaultTransformOptions } from './types/constants/defaultTransformOptions';
 import { ActionTransformOptions } from './types/ActionTransformOptions';
 import { instanceToPlain, plainToInstance } from 'class-transformer';
-import { ScopedContainerGetterParams } from './types/ScopedContainerGetterParams';
 import { MiddlewareInterface } from './types/MiddlewareInterface';
+import { InterceptorInterface } from './types/InterceptorInterface';
+import { chainExecute } from './util/chain-execute';
+import { SocketEventContext } from './types/SocketEventContext';
 
 export class SocketControllers {
   public container: { get<T>(someClass: { new (...args: any[]): T } | Function): T };
@@ -163,62 +165,90 @@ export class SocketControllers {
     );
 
     if (connectedAction) {
-      this.executeAction(socket, controller, connectedAction);
+      void this.executeAction(socket, controller, connectedAction);
     }
 
     if (disconnectedAction) {
       socket.on('disconnect', () => {
-        this.executeAction(socket, controller, disconnectedAction);
+        void this.executeAction(socket, controller, disconnectedAction);
       });
     }
 
     if (disconnectingAction) {
       socket.on('disconnecting', () => {
-        this.executeAction(socket, controller, disconnectingAction);
+        void this.executeAction(socket, controller, disconnectingAction);
       });
     }
 
     for (const messageAction of messageActions) {
       socket.on(messageAction.options.name, (...args: any[]) => {
         const messages: any[] = args.slice(0, -1);
-        const ack: any = args[args.length - 1];
+        let ack: Function | null = args[args.length - 1];
 
         if (!(ack instanceof Function)) {
           messages.push(ack);
+          ack = null;
         }
 
-        this.executeAction(socket, controller, messageAction, messageAction.options.name as string, messages);
+        void this.executeAction(socket, controller, messageAction, messageAction.options.name as string, messages, ack);
       });
     }
   }
 
-  private executeAction(
+  private async executeAction(
     socket: Socket,
     controller: HandlerMetadata<ControllerMetadata>,
     action: ActionMetadata,
     eventName?: string,
-    data?: any[]
+    data?: any[],
+    ack?: Function | null
   ) {
-    const parameters = this.resolveParameters(socket, controller.metadata, action.parameters || [], data);
-    try {
-      let container = this.container;
-      if (this.options.scopedContainerGetter) {
-        container = this.options.scopedContainerGetter(
-          this.collectScopedContainerParams(socket, action.type, eventName, data, controller.metadata.namespace)
-        );
-      }
+    const eventContext = this.resolveEventContext(
+      socket,
+      action.type,
+      eventName,
+      data,
+      controller.metadata.namespace,
+      ack
+    );
 
+    let container = this.container;
+    if (this.options.scopedContainerGetter) {
+      container = this.options.scopedContainerGetter(eventContext);
+    }
+
+    try {
       const controllerInstance: any = container.get(controller.target);
-      const actionResult = controllerInstance[action.methodName](...parameters);
-      Promise.resolve(actionResult)
-        .then(result => {
-          this.handleActionResult(socket, action, result, ResultType.EMIT_ON_SUCCESS);
-        })
-        .catch(error => {
-          this.handleActionResult(socket, action, error, ResultType.EMIT_ON_FAIL);
-        });
+
+      const actions = [
+        ...(action.interceptors || []).map(interceptor => {
+          return (
+            ((interceptor as any) instanceof Function
+              ? container.get(interceptor)
+              : interceptor) as InterceptorInterface
+          ).use.bind(interceptor);
+        }),
+        (context: SocketEventContext) => {
+          const parameters = this.resolveParameters(
+            socket,
+            controller.metadata,
+            action.parameters || [],
+            context.messageArgs,
+            ack
+          );
+          return controllerInstance[action.methodName](...parameters);
+        },
+      ];
+
+      const actionResult = chainExecute(eventContext, actions);
+      const result = await Promise.resolve(actionResult);
+      this.handleActionResult(socket, action, result, ResultType.EMIT_ON_SUCCESS);
     } catch (error: any) {
       this.handleActionResult(socket, action, error, ResultType.EMIT_ON_FAIL);
+    }
+
+    if (this.options.scopedContainerDisposer) {
+      this.options.scopedContainerDisposer(container);
     }
   }
 
@@ -263,12 +293,13 @@ export class SocketControllers {
     socket: Socket,
     controllerMetadata: ControllerMetadata,
     parameterMetadatas: ParameterMetadata[],
-    data?: any[]
+    data?: any[],
+    ack?: Function | null
   ) {
     const parameters = [];
 
     for (const metadata of parameterMetadatas) {
-      const parameterValue = this.resolveParameter(socket, controllerMetadata, metadata, data) as never;
+      const parameterValue = this.resolveParameter(socket, controllerMetadata, metadata, data, ack) as never;
       parameters[metadata.index] = this.transformActionValue(
         parameterValue,
         metadata.reflectedType as never,
@@ -280,7 +311,13 @@ export class SocketControllers {
     return parameters;
   }
 
-  private resolveParameter(socket: Socket, controller: ControllerMetadata, parameter: ParameterMetadata, data?: any[]) {
+  private resolveParameter(
+    socket: Socket,
+    controller: ControllerMetadata,
+    parameter: ParameterMetadata,
+    data?: any[],
+    ack?: Function | null
+  ) {
     switch (parameter.type) {
       case ParameterType.CONNECTED_SOCKET:
         return socket;
@@ -292,6 +329,8 @@ export class SocketControllers {
         return socket.rooms;
       case ParameterType.MESSAGE_BODY:
         return data?.[(parameter.options.index as number) || 0];
+      case ParameterType.MESSAGE_ACK:
+        return ack;
       case ParameterType.SOCKET_QUERY_PARAM:
         return socket.handshake.query[parameter.options.name as string];
       case ParameterType.SOCKET_REQUEST:
@@ -336,13 +375,14 @@ export class SocketControllers {
     return value;
   }
 
-  private collectScopedContainerParams(
+  private resolveEventContext(
     socket: Socket,
     eventType: SocketEventType,
     eventName?: string,
     messageBody?: any[],
-    namespace?: string | RegExp
-  ): ScopedContainerGetterParams {
+    namespace?: string | RegExp,
+    ack?: Function | null
+  ): SocketEventContext {
     return {
       eventType,
       eventName,
@@ -350,6 +390,7 @@ export class SocketControllers {
       socketIo: this.io,
       nspParams: this.extractNamespaceParameters(socket, namespace),
       messageArgs: messageBody,
+      ack,
     };
   }
 

@@ -2,6 +2,40 @@
 
 _This changelog follows the [keep a changelog][keep-a-changelog]_ format to maintain a human readable changelog.
 
+## [0.2.0](https://github.com/typestack/socket-controllers/compare/v0.1.2...v0.2.0) (2023-04-10)
+
+### Breaking Changes
+
+- Replaced `ScopedContainerGetterParams` with `SocketEventContext`
+
+  BEFORE:
+
+  ```ts
+  scopedContainerGetter: (args: ScopedContainerGetterParams) => {
+    // ...
+  }
+  ```
+
+  AFTER:
+
+  ```ts
+  scopedContainerGetter: (args: SocketEventContext) => {
+    // ...
+  }
+  ```
+  Note: The new interface contains all properties of the previous
+
+
+### Added
+
+- Added scoped container dispose support  
+- Added interceptor support
+- Added ack support
+
+### Changed
+
+- `glob` package updated from `8.1.0` to `10.0.0`
+  
 ## [0.1.2](https://github.com/typestack/socket-controllers/compare/v0.1.1...v0.1.2) (2023-01-30)
 
 ### Added
@@ -18,7 +52,6 @@ _This changelog follows the [keep a changelog][keep-a-changelog]_ format to main
     }
   });
   ```
-
 
 ## [0.1.1](https://github.com/typestack/socket-controllers/compare/v0.1.0...v0.1.1) (2023-01-27)
 
