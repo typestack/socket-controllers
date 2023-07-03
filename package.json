@@ -39,7 +39,7 @@
   "devDependencies": {
     "@types/glob": "^8.1.0",
     "@types/jest": "^29.5.2",
-    "@types/node": "^20.3.2",
+    "@types/node": "^20.3.3",
     "@types/path-to-regexp": "^1.7.0",
     "@types/socket.io": "^3.0.2",
     "@typescript-eslint/eslint-plugin": "^5.60.1",
