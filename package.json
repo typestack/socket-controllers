@@ -31,7 +31,7 @@
   },
   "dependencies": {
     "class-transformer": "^0.5.1",
-    "glob": "^10.3.9",
+    "glob": "^10.3.10",
     "path-to-regexp": "^6.2.1",
     "reflect-metadata": "^0.1.13",
     "socket.io": "^4.5.4"
