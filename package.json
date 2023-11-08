@@ -38,7 +38,7 @@
   },
   "devDependencies": {
     "@types/glob": "^8.1.0",
-    "@types/jest": "^29.5.7",
+    "@types/jest": "^29.5.8",
     "@types/node": "^20.9.0",
     "@types/path-to-regexp": "^1.7.0",
     "@types/socket.io": "^3.0.2",
