@@ -8,6 +8,7 @@ export * from './decorators/NspParam';
 export * from './decorators/NspParams';
 export * from './decorators/OnConnect';
 export * from './decorators/OnDisconnect';
+export * from './decorators/OnDisconnecting';
 export * from './decorators/OnMessage';
 export * from './decorators/SkipEmitOnEmptyResult';
 export * from './decorators/SocketController';
