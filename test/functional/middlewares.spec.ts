@@ -17,7 +17,7 @@ describe('Middlewares', () => {
   let httpServer: HttpServer;
   let wsApp: Server;
   let wsClient: Socket;
-  let testResult;
+  let testResult: string[] = [];
   let socketControllers: SocketControllers;
 
   beforeEach(done => {
@@ -33,7 +33,7 @@ describe('Middlewares', () => {
   });
 
   afterEach(() => {
-    testResult = undefined;
+    testResult = [];
 
     Container.reset();
     wsClient.close();
@@ -53,7 +53,7 @@ describe('Middlewares', () => {
     @Service()
     class GlobalMiddleware implements MiddlewareInterface {
       use(socket: any, next: (err?: any) => any): any {
-        testResult = 'global middleware';
+        testResult.push('global middleware');
         next();
       }
     }
@@ -76,7 +76,7 @@ describe('Middlewares', () => {
     wsClient = io(PATH_FOR_CLIENT, { reconnection: false, timeout: 5000, forceNew: true });
 
     await waitForEvent(wsClient, 'connected');
-    expect(testResult).toEqual('global middleware');
+    expect(testResult).toEqual(['global middleware']);
   });
 
   describe('string namespace', () => {
@@ -85,7 +85,16 @@ describe('Middlewares', () => {
       @Service()
       class StringNamespaceMiddleware implements MiddlewareInterface {
         use(socket: any, next: (err?: any) => any): any {
-          testResult = 'string middleware';
+          testResult.push('string middleware');
+          next();
+        }
+      }
+
+      @Middleware()
+      @Service()
+      class MiddlewareWithoutNamespace implements MiddlewareInterface {
+        use(socket: any, next: (err?: any) => any): any {
+          testResult.push('middleware without namespace');
           next();
         }
       }
@@ -102,13 +111,13 @@ describe('Middlewares', () => {
       socketControllers = new SocketControllers({
         io: wsApp,
         container: Container,
-        middlewares: [StringNamespaceMiddleware],
+        middlewares: [StringNamespaceMiddleware, MiddlewareWithoutNamespace],
         controllers: [StringNamespaceController],
       });
       wsClient = io(PATH_FOR_CLIENT + '/string', { reconnection: false, timeout: 5000, forceNew: true });
 
       await waitForEvent(wsClient, 'connected');
-      expect(testResult).toEqual('string middleware');
+      expect(testResult).toEqual(['string middleware', 'middleware without namespace']);
     });
 
     it('incorrect namespace', async () => {
@@ -116,7 +125,16 @@ describe('Middlewares', () => {
       @Service()
       class StringNamespaceMiddleware implements MiddlewareInterface {
         use(socket: any, next: (err?: any) => any): any {
-          testResult = 'string middleware';
+          testResult.push('string middleware');
+          next();
+        }
+      }
+
+      @Middleware()
+      @Service()
+      class MiddlewareWithoutNamespace implements MiddlewareInterface {
+        use(socket: any, next: (err?: any) => any): any {
+          testResult.push('middleware without namespace');
           next();
         }
       }
@@ -133,13 +151,13 @@ describe('Middlewares', () => {
       socketControllers = new SocketControllers({
         io: wsApp,
         container: Container,
-        middlewares: [StringNamespaceMiddleware],
+        middlewares: [StringNamespaceMiddleware, MiddlewareWithoutNamespace],
         controllers: [String2NamespaceController],
       });
       wsClient = io(PATH_FOR_CLIENT + '/string2', { reconnection: false, timeout: 5000, forceNew: true });
 
       await waitForEvent(wsClient, 'connected');
-      expect(testResult).toEqual(undefined);
+      expect(testResult).toEqual(['middleware without namespace']);
     });
   });
 
@@ -149,7 +167,16 @@ describe('Middlewares', () => {
       @Service()
       class RegexpNamespaceMiddleware implements MiddlewareInterface {
         use(socket: any, next: (err?: any) => any): any {
-          testResult = socket.nsp.name;
+          testResult.push(socket.nsp.name as string);
+          next();
+        }
+      }
+
+      @Middleware()
+      @Service()
+      class MiddlewareWithoutNamespace implements MiddlewareInterface {
+        use(socket: any, next: (err?: any) => any): any {
+          testResult.push('middleware without namespace');
           next();
         }
       }
@@ -166,13 +193,13 @@ describe('Middlewares', () => {
       socketControllers = new SocketControllers({
         io: wsApp,
         container: Container,
-        middlewares: [RegexpNamespaceMiddleware],
+        middlewares: [RegexpNamespaceMiddleware, MiddlewareWithoutNamespace],
         controllers: [RegexpNamespaceController],
       });
       wsClient = io(PATH_FOR_CLIENT + '/dynamic-1', { reconnection: false, timeout: 5000, forceNew: true });
 
       await waitForEvent(wsClient, 'connected');
-      expect(testResult).toEqual('/dynamic-1');
+      expect(testResult).toEqual(['/dynamic-1', 'middleware without namespace']);
     });
 
     it('incorrect namespace', async () => {
@@ -180,7 +207,16 @@ describe('Middlewares', () => {
       @Service()
       class RegexpNamespaceMiddleware implements MiddlewareInterface {
         use(socket: any, next: (err?: any) => any): any {
-          testResult = socket.nsp.name;
+          testResult.push(socket.nsp.name as string);
+          next();
+        }
+      }
+
+      @Middleware()
+      @Service()
+      class MiddlewareWithoutNamespace implements MiddlewareInterface {
+        use(socket: any, next: (err?: any) => any): any {
+          testResult.push('middleware without namespace');
           next();
         }
       }
@@ -197,13 +233,13 @@ describe('Middlewares', () => {
       socketControllers = new SocketControllers({
         io: wsApp,
         container: Container,
-        middlewares: [RegexpNamespaceMiddleware],
+        middlewares: [RegexpNamespaceMiddleware, MiddlewareWithoutNamespace],
         controllers: [RegexpNamespaceController],
       });
       wsClient = io(PATH_FOR_CLIENT + '/dynamic-1', { reconnection: false, timeout: 5000, forceNew: true });
 
       await waitForEvent(wsClient, 'connected');
-      expect(testResult).toEqual(undefined);
+      expect(testResult).toEqual(['middleware without namespace']);
     });
   });
 
@@ -213,7 +249,16 @@ describe('Middlewares', () => {
       @Service()
       class RegexpArrayNamespaceMiddleware implements MiddlewareInterface {
         use(socket: any, next: (err?: any) => any): any {
-          testResult = socket.nsp.name;
+          testResult.push(socket.nsp.name as string);
+          next();
+        }
+      }
+
+      @Middleware()
+      @Service()
+      class MiddlewareWithoutNamespace implements MiddlewareInterface {
+        use(socket: any, next: (err?: any) => any): any {
+          testResult.push('middleware without namespace');
           next();
         }
       }
@@ -230,13 +275,13 @@ describe('Middlewares', () => {
       socketControllers = new SocketControllers({
         io: wsApp,
         container: Container,
-        middlewares: [RegexpArrayNamespaceMiddleware],
+        middlewares: [RegexpArrayNamespaceMiddleware, MiddlewareWithoutNamespace],
         controllers: [RegexpNamespaceController],
       });
       wsClient = io(PATH_FOR_CLIENT + '/dynamic-1', { reconnection: false, timeout: 5000, forceNew: true });
 
       await waitForEvent(wsClient, 'connected');
-      expect(testResult).toEqual('/dynamic-1');
+      expect(testResult).toEqual(['/dynamic-1', 'middleware without namespace']);
     });
 
     it('incorrect namespace', async () => {
@@ -244,7 +289,16 @@ describe('Middlewares', () => {
       @Service()
       class RegexpArrayNamespaceMiddleware implements MiddlewareInterface {
         use(socket: any, next: (err?: any) => any): any {
-          testResult = socket.nsp.name;
+          testResult.push(socket.nsp.name as string);
+          next();
+        }
+      }
+
+      @Middleware()
+      @Service()
+      class MiddlewareWithoutNamespace implements MiddlewareInterface {
+        use(socket: any, next: (err?: any) => any): any {
+          testResult.push('middleware without namespace');
           next();
         }
       }
@@ -261,13 +315,13 @@ describe('Middlewares', () => {
       socketControllers = new SocketControllers({
         io: wsApp,
         container: Container,
-        middlewares: [RegexpArrayNamespaceMiddleware],
+        middlewares: [RegexpArrayNamespaceMiddleware, MiddlewareWithoutNamespace],
         controllers: [RegexpNamespaceController],
       });
       wsClient = io(PATH_FOR_CLIENT + '/dynamic-1', { reconnection: false, timeout: 5000, forceNew: true });
 
       await waitForEvent(wsClient, 'connected');
-      expect(testResult).toEqual(undefined);
+      expect(testResult).toEqual(['middleware without namespace']);
     });
   });
 });
