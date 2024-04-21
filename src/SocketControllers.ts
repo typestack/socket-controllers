@@ -92,20 +92,24 @@ export class SocketControllers {
     });
 
     const middlewaresWithoutNamespace = middlewares.filter(middleware => !middleware.metadata.namespace);
-    const middlewaresWithNamespace = middlewares.filter(middleware => !!middleware.metadata.namespace);
 
     for (const middleware of middlewaresWithoutNamespace) {
       this.registerMiddleware(this.io as unknown as Namespace, middleware);
     }
 
     this.io.on('new_namespace', (namespace: Namespace) => {
-      for (const middleware of middlewaresWithNamespace) {
+      for (const middleware of middlewares) {
         const middlewareNamespaces = Array.isArray(middleware.metadata.namespace)
           ? middleware.metadata.namespace
           : [middleware.metadata.namespace];
 
         const shouldApply = middlewareNamespaces.some(nsp => {
-          const nspRegexp = nsp instanceof RegExp ? nsp : pathToRegexp(nsp as string);
+          // Register middlewares without namespace too
+          if (nsp == null) {
+            return true;
+          }
+
+          const nspRegexp = nsp instanceof RegExp ? nsp : pathToRegexp(nsp);
           return nspRegexp.test(namespace.name);
         });
 

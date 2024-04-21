@@ -2,6 +2,19 @@
 
 _This changelog follows the [keep a changelog][keep-a-changelog]_ format to maintain a human readable changelog.
 
+## [0.3.0](https://github.com/typestack/socket-controllers/compare/v0.2.0...v0.3.0) (2024-04-21)
+
+### Breaking Changes
+
+- Middlewares without a defined namespace are registered on all namespaces
+
+### Changed
+
+- `glob` package updated from `10.0.0` to `10.3.12`
+- `path-to-regexp` package updated from `6.2.1` to `6.2.2`
+- `reflect-metadata` package updated from `0.1.13` to `0.2.2`
+- `socket.io` package updated from `4.5.4` to `4.7.5`
+
 ## [0.2.0](https://github.com/typestack/socket-controllers/compare/v0.1.2...v0.2.0) (2023-04-10)
 
 ### Breaking Changes
