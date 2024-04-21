@@ -2,6 +2,12 @@
 
 _This changelog follows the [keep a changelog][keep-a-changelog]_ format to maintain a human readable changelog.
 
+## [0.3.1](https://github.com/typestack/socket-controllers/compare/v0.3.0...v0.3.1) (2024-04-21)
+
+### Changed
+
+- Added missing `@OnDisconnecting()` export to index
+
 ## [0.3.0](https://github.com/typestack/socket-controllers/compare/v0.2.0...v0.3.0) (2024-04-21)
 
 ### Breaking Changes
