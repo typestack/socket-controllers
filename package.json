@@ -53,7 +53,7 @@
     "lint-staged": "^15.2.7",
     "prettier": "^2.8.8",
     "rimraf": "5.0.7",
-    "socket.io-client": "^4.5.4",
+    "socket.io-client": "^4.7.5",
     "ts-jest": "^29.1.5",
     "ts-node": "^10.9.2",
     "typedi": "^0.10.0",
