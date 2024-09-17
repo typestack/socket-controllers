@@ -135,7 +135,10 @@ describe('Scoped controllers', () => {
     @SocketController('/string')
     @Service()
     class TestController {
-      constructor(private testService: TestService, @Inject(token) public myAdditional: number) {}
+      constructor(
+        private testService: TestService,
+        @Inject(token) public myAdditional: number
+      ) {}
 
       @OnConnect()
       connected(@ConnectedSocket() socket: Socket) {
@@ -215,7 +218,10 @@ describe('Scoped controllers', () => {
     @SocketController('/string')
     @Service()
     class TestController {
-      constructor(private testService: TestService, @Inject(token) public myAdditional: number) {}
+      constructor(
+        private testService: TestService,
+        @Inject(token) public myAdditional: number
+      ) {}
 
       @OnConnect()
       connected(@ConnectedSocket() socket: Socket) {
