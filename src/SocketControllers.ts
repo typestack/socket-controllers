@@ -109,7 +109,7 @@ export class SocketControllers {
             return true;
           }
 
-          const nspRegexp = nsp instanceof RegExp ? nsp : pathToRegexp(nsp);
+          const nspRegexp = nsp instanceof RegExp ? nsp : pathToRegexp(nsp).regexp;
           return nspRegexp.test(namespace.name);
         });
 
@@ -145,7 +145,7 @@ export class SocketControllers {
     for (const [nsp, controllers] of Object.entries(controllerNamespaceMap)) {
       const namespace = controllerNamespaceRegExpMap[nsp];
       this.io
-        .of(namespace instanceof RegExp ? namespace : pathToRegexp(namespace))
+        .of(namespace instanceof RegExp ? namespace : pathToRegexp(namespace).regexp)
         .on('connection', (socket: Socket) => {
           for (const controller of controllers) {
             this.registerController(socket, controller);
@@ -403,8 +403,18 @@ export class SocketControllers {
     namespace: string | RegExp | undefined,
     parameterMetadata?: ParameterMetadata
   ) {
-    const keys: any[] = [];
-    const regexp = namespace instanceof RegExp ? namespace : pathToRegexp(namespace || '/', keys);
+    let keys: any[];
+    let regexp: RegExp;
+
+    if (namespace instanceof RegExp) {
+      regexp = namespace;
+      keys = [];
+    } else {
+      const pathToRegexpResult = pathToRegexp(namespace || '/');
+      regexp = pathToRegexpResult.regexp;
+      keys = pathToRegexpResult.keys;
+    }
+
     const parts: any[] = regexp.exec(socket.nsp.name) || [];
     const params: Record<string, string> = {};
     keys.forEach((key: any, index: number) => {
