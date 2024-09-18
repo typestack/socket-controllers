@@ -23,8 +23,8 @@
     "build": "rimraf build && tsc --project tsconfig.prod.json",
     "prettier:fix": "prettier --write \"**/*.ts\"",
     "prettier:check": "prettier --check \"**/*.ts\"",
-    "lint:fix": "eslint --max-warnings 0 --fix --ext .ts src/",
-    "lint:check": "eslint --max-warnings 0 --ext .ts src/",
+    "lint:fix": "eslint --max-warnings 0 --fix src/**/*.ts",
+    "lint:check": "eslint --max-warnings 0 src/**/*.ts",
     "test": "jest --coverage --verbose",
     "test:watch": "jest --watch",
     "test:ci": "jest --runInBand --no-cache --coverage --verbose"
