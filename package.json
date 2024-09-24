@@ -42,7 +42,7 @@
     "@types/node": "^20.14.11",
     "@types/path-to-regexp": "^1.7.0",
     "@types/socket.io": "^3.0.2",
-    "@typescript-eslint/eslint-plugin": "^8.6.0",
+    "@typescript-eslint/eslint-plugin": "^8.7.0",
     "@typescript-eslint/parser": "^8.6.0",
     "eslint": "^9.10.0",
     "eslint-config-prettier": "^9.1.0",
